@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+<node name="keyboard_node" pkg="pathmaker" type="keyboard_node" respawn="false" output="screen">
+</node>
+<node name="offb_node" pkg="pathmaker" type="offb_node" respawn="false" output="screen">
+</node>
+</launch>
+
+

@@ -12,12 +12,14 @@
 #include "pathmaker/key.h"
 #include "pathmaker/keyboard.h"
 #include <math.h>
+//#include <std_msgs/Float32.h>
+
 
 
 mavros_msgs::State current_state;
-test::key current_key;
+pathmaker::key current_key;
 geometry_msgs::Twist vel;
-
+//float depth=0;
 void calSpeed(double x, double y, double z, double rz){
     vel.linear.x = x;
     vel.linear.y = y;
@@ -29,7 +31,7 @@ void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
 
-void state_key(const test::key::ConstPtr& msg){
+void state_key(const pathmaker::key::ConstPtr& msg){
     current_key = *msg;
     switch(msg->key){
         case keyboardInput::W: // W, S : alttitude vel.linear.z
@@ -63,14 +65,19 @@ void state_key(const test::key::ConstPtr& msg){
 
 }
 
-
+/*void dep(const std_msgs::Float32::ConstPtr& msg)
+{
+  depth=msg->data;
+ROS_INFO("%f",depth);
+}
+*/
 
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "offb_node");
     ros::NodeHandle nh;
-
+//    ros::Subscriber getdata=nh.subscribe<std_msgs::Float32>("/float32",10, dep);
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
             ("mavros/state", 10, state_cb);
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
@@ -80,7 +87,7 @@ int main(int argc, char **argv)
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
 
-    ros::Subscriber keyInput = nh.subscribe<test::key>
+    ros::Subscriber keyInput = nh.subscribe<pathmaker::key>
             ("keyboardInput/key", 10, state_key);
     ros::Publisher vel_pub = nh.advertise<geometry_msgs::Twist>
             ("mavros/setpoint_velocity/cmd_vel_unstamped", 10);
@@ -93,12 +100,17 @@ int main(int argc, char **argv)
         rate.sleep();
     }
 
-    
+
     geometry_msgs::PoseStamped pose;
     pose.pose.position.x = 0;
     pose.pose.position.y = 0;
     pose.pose.position.z = 2;
-    
+  /* if(
+depth<5)
+{
+    pose.pose.position.x=-5;
+    pose.pose.position.y=-5;
+}*/
     //send a few setpoints before starting
     for(int i = 100; ros::ok() && i > 0; --i){
         local_pos_pub.publish(pose);

@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "ros/ros.h"
-#include "test/key.h"
+#include "pathmaker/key.h"
 
 keyboardInput::keyboardInput(){
     this->isPrint = false;
@@ -33,7 +33,7 @@ void keyboardInput::init(){
 
     tcsetattr(STDIN_FILENO, TCSANOW, &new_term); // the attribute apply to terminal
 
-    pub = n.advertise<test::key>("keyboardInput/key", 1000);
+    pub = n.advertise<pathmaker::key>("keyboardInput/key", 1000);
     rate = new ros::Rate(20.0);
 }
 
