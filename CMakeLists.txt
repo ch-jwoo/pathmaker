@@ -145,6 +145,16 @@ ${${PROJECT_NAME}_EXPORTED_TARGETS}
 ${catkin_EXPORTED_TARGETS}
 )
 
+## image process
+add_library(imgproc
+  src/lib/ImgProc.cpp
+  src/lib/ImageConverter.cpp
+  src/lib/PathRect.cpp
+)
+add_dependencies(imgproc
+${${PROJECT_NAME}_EXPORTED_TARGETS} 
+${catkin_EXPORTED_TARGETS}
+)
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
@@ -201,6 +211,20 @@ target_link_libraries(keyboard_node
   ${OpenCV_LIBRARIES}
 )
 
+##imgproc
+add_executable(imgproc_node 
+  src/imgproc_node.cpp
+)
+add_dependencies(imgproc_node 
+  imgproc
+  ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+  ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(imgproc_node
+  imgproc
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
 #############
 ## Install ##
 #############
