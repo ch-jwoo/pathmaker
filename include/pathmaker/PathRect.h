@@ -12,7 +12,7 @@ private:
 
     cv::Mat img;
     cv::Mat imgROI;
-    cv::Rect2i pathRect;
+    cv::Rect pathRect;
 
     double avgDepth;
     double minDepth;
@@ -27,7 +27,7 @@ private:
     void calAvg();
 public:
     PathRect(const cv::Mat &img, const UAV &uav, bool openWindow);
-    void updateROI(const cv::Mat &img);
+    void updatePR(const cv::Mat &img);
 };
 
 #endif

@@ -20,9 +20,8 @@ void ImgProc::init(){
 }
 void ImgProc::run(){
     while(ros::ok()){
-        //std::cout<<"original img = "<<img.rows<<" * "<<img.cols<<std::endl;
         if(!img.empty()){
-            pr.updateROI(img);
+            pr.updatePR(img);
         }
         ros::spinOnce();
         rate.sleep();

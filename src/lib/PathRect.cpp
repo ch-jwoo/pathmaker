@@ -11,18 +11,16 @@ PathRect::PathRect(const cv::Mat &img, const UAV &uav, bool openWindow)
     }
 }
 
-void PathRect::updateROI(const cv::Mat &notEmptyImg){
+void PathRect::updatePR(const cv::Mat &notEmptyImg){
     
     img = notEmptyImg.clone();   
-    std::cout<<img.rows<<" * "<<img.cols<<std::endl;
-    pathRect = cv::Rect_<int>(img.cols/4.0, img.rows/4.0, img.cols*3.0/4.0, img.rows/2.0);
-    std::cout<<pathRect.tl().x<<", "<<pathRect.tl().y<<", "<<pathRect.br().x<<", "<<pathRect.br().y<<std::endl;
+    //std::cout<<img.rows<<" * "<<img.cols<<std::endl;
+    //pathRect = cv::Rect_<int>(img.cols/4.0, img.rows/4.0, img.cols/2, img.rows/4.0);
+    //std::cout<<pathRect.tl().x<<", "<<pathRect.tl().y<<", "<<pathRect.br().x<<", "<<pathRect.br().y<<std::endl;
     
-    imgROI(pathRect);
+    imgROI = cv::Mat(img, pathRect);
     
     cv::minMaxLoc(imgROI, &minDepth, &maxDepth, &minLoc, &maxLoc);
-    
-    //std::cout<<"(minDepth, maxDepth) = ("<<minDepth<<", "<<maxDepth<<")"<<std::endl;
 
     calAvg();
     std::cout<<"avgDepth = "<<avgDepth<<std::endl;
