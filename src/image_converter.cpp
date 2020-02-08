@@ -23,7 +23,7 @@ public:
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
-    image_sub_ = it_.subscribe("/camera/depth/image_raw", 1,
+    image_sub_ = it_.subscribe("/camera/depth/image_rect_raw", 1,
       &ImageConverter::imageCb, this);
     image_pub_ = it_.advertise("/dep/lklk", 1);
 
@@ -42,7 +42,7 @@ public:
     cv_bridge::CvImagePtr cv_ptr;
     try
     {
-      cv_ptr = cv_bridge::toCvCopy(msg, "32FC1");
+      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
     }
     catch (cv_bridge::Exception& e)
     {
