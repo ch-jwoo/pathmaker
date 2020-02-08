@@ -2,7 +2,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-PathRect::PathRect(const cv::Mat &img, const UAV &uav, bool openWindow)
+ ::LocalPathPlanning(const cv::Mat &img, const UAV &uav, bool openWindow)
     : uav(uav)
     , openWindow(openWindow)
 {
@@ -11,7 +11,7 @@ PathRect::PathRect(const cv::Mat &img, const UAV &uav, bool openWindow)
     }
 }
 
-void PathRect::updatePR(const cv::Mat &notEmptyImg){
+void LocalPathPlanning::updatePR(const cv::Mat &notEmptyImg){
     
     img = notEmptyImg.clone();   
     //std::cout<<img.rows<<" * "<<img.cols<<std::endl;

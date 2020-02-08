@@ -5,7 +5,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include "ros/ros.h"
-#include "test/key.h"
+#include "pathmaker/key.h"
 
 class keyboardInput{
 public:
@@ -27,7 +27,7 @@ private:
     ros::NodeHandle n;
     ros::Publisher pub;
     ros::Rate* rate;
-    test::key msg;
+    pathmaker::key msg;
 };
 
 #endif

@@ -5,7 +5,8 @@
 #include <opencv2/core.hpp>
 #include "pathmaker/UAV.h"
 #include <thread>
-class PathRect{
+
+class LocalPathPlanning{
 private:
     //copy ImgProc's img for edit
     const UAV &uav;
@@ -26,7 +27,7 @@ private:
     void calRect();
     void calAvg();
 public:
-    PathRect(const cv::Mat &img, const UAV &uav, bool openWindow);
+    LocalPathPlanning(const cv::Mat &img, const UAV &uav, bool openWindow);
     void updatePR(const cv::Mat &img);
 };
 

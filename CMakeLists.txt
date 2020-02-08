@@ -18,6 +18,9 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
   message_generation
+  pcl_conversions
+  pcl_ros
+  gazebo_msgs
 )
 
 find_package(OpenCV 3 REQUIRED)
@@ -146,15 +149,26 @@ ${catkin_EXPORTED_TARGETS}
 )
 
 ## image process
-add_library(imgproc
-  src/lib/ImgProc.cpp
-  src/lib/ImageConverter.cpp
-  src/lib/PathRect.cpp
+# add_library(imgproc
+#   src/lib/ImgProc.cpp
+#   src/lib/ImageConverter.cpp
+#   src/lib/PathRect.cpp
+# )
+# add_dependencies(imgproc
+# ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+# ${catkin_EXPORTED_TARGETS}
+# )
+
+add_library(master
+  src/lib/master.cpp
+  src/lib/wpGenerator.cpp
+  src/lib/localPathPlanning.cpp
 )
-add_dependencies(imgproc
-${${PROJECT_NAME}_EXPORTED_TARGETS} 
-${catkin_EXPORTED_TARGETS}
+add_dependencies(master
+  ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+  ${catkin_EXPORTED_TARGETS}
 )
+
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
@@ -212,18 +226,57 @@ target_link_libraries(keyboard_node
 )
 
 ##imgproc
-add_executable(imgproc_node 
-  src/imgproc_node.cpp
+# add_executable(imgproc_node 
+#   src/imgproc_node.cpp
+# )
+# add_dependencies(imgproc_node 
+#   imgproc
+#   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+#   ${catkin_EXPORTED_TARGETS}
+# )
+# target_link_libraries(imgproc_node
+#   imgproc
+#   ${catkin_LIBRARIES}
+#   ${OpenCV_LIBRARIES}
+# )
+
+##master
+add_executable(master_node 
+  src/master_node.cpp
 )
-add_dependencies(imgproc_node 
-  imgproc
+add_dependencies(master_node 
+  master
   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
   ${catkin_EXPORTED_TARGETS}
 )
-target_link_libraries(imgproc_node
-  imgproc
+target_link_libraries(master_node
+  master
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
+)
+
+##pc_node
+# add_executable(pc_node 
+#   src/pc_node.cpp
+# )
+# add_dependencies(pc_node 
+#   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+#   ${catkin_EXPORTED_TARGETS}
+# )
+# target_link_libraries(pc_node
+#   ${catkin_LIBRARIES}
+# )
+
+##tf_node
+add_executable(tf_node 
+  src/tf_node.cpp
+)
+add_dependencies(tf_node 
+  ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+  ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(tf_node
+  ${catkin_LIBRARIES}
 )
 #############
 ## Install ##

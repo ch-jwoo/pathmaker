@@ -15,7 +15,7 @@
 
 
 mavros_msgs::State current_state;
-test::key current_key;
+pathmaker::key current_key;
 geometry_msgs::Twist vel;
 
 void calSpeed(double x, double y, double z, double rz){
@@ -29,7 +29,7 @@ void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
 
-void state_key(const test::key::ConstPtr& msg){
+void state_key(const pathmaker::key::ConstPtr& msg){
     current_key = *msg;
     switch(msg->key){
         case keyboardInput::W: // W, S : alttitude vel.linear.z
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
 
-    ros::Subscriber keyInput = nh.subscribe<test::key>
+    ros::Subscriber keyInput = nh.subscribe<pathmaker::key>
             ("keyboardInput/key", 10, state_key);
     ros::Publisher vel_pub = nh.advertise<geometry_msgs::Twist>
             ("mavros/setpoint_velocity/cmd_vel_unstamped", 10);
