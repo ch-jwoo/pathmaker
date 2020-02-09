@@ -8,9 +8,11 @@
 #include <mavros_msgs/HomePosition.h>
 
 namespace pm{
-
+//make sub waypoint from destination GPS
 class WpGenerator{
 private:
+    ros::NodeHandle &nh;
+
     //for wp clear
     ros::ServiceClient wp_clear_client;
     mavros_msgs::WaypointClear wp_clear_srv;
@@ -23,9 +25,8 @@ private:
     ros::ServiceClient set_home_client;
     mavros_msgs::CommandHome set_home_srv;
     
-    //subscribe home position
-    ros::Subscriber home_pos_sub;
-    mavros_msgs::HomePosition home_pos;
+    //subscribe home_pos_sub
+    ros::Subscriber home_pos_sub;//현재 subscribe를 계속 하고 있음, 최적화 하려면 키고 끄는 방식으로 바꿔야함
 
     //target gps
     _Float64 target_lat;
@@ -35,38 +36,35 @@ private:
     _Float64 home_lat;
     _Float64 home_lon;
 
-
-
-    void calSubWP();
+    //add waypoint
     void addWP(_Float64 lat, _Float64 lon, _Float64 alt);
+
+    //add landing point
     void addLand(_Float64 lat, _Float64 lon, _Float64 alt);
 
+    void calSubWP();
+
 public:
-    // WpGenerator();
-    WpGenerator(_Float64 lat, _Float64 lon);
+    WpGenerator(ros::NodeHandle &nh);
 
     inline void setTarget(_Float64 lat, _Float64 lon){
         target_lat = lat;
         target_lon = lon;
+        calSubWP();
     }
 
-    void homePosCb(const mavros_msgs::HomePosition::ConstPtr& msg);
-    
+    void homePosCb(const mavros_msgs::HomePositionConstPtr& msg);
+
     //push waypoint
-    void pushWP();
+    bool pushWP();
 
     //set home position to current gps
-    void current2Home();
+    bool current2Home();
 
     //clear waypoint
-    void cleanWP();
+    bool cleanWP();
 
-    //init : set home position, clear waypoint, push
-    void init();
 };
-
-
-
 
 }
 

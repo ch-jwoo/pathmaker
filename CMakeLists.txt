@@ -160,9 +160,10 @@ ${catkin_EXPORTED_TARGETS}
 # )
 
 add_library(master
-  src/lib/master.cpp
+  src/lib/layers.cpp
   src/lib/wpGenerator.cpp
   src/lib/localPathPlanning.cpp
+  src/lib/master.cpp
 )
 add_dependencies(master
   ${${PROJECT_NAME}_EXPORTED_TARGETS} 

@@ -1,5 +1,6 @@
 #ifndef __PATHPLANNING_H
 #define __PATHPLANNING_H
+#include "layers.h"
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
@@ -10,19 +11,17 @@
 
 namespace pm{
 
-class Layers;
-
 class LocalPathPlanning{
 private:
-    Master &master;
+    ros::NodeHandle nh;
+
     cv::Mat depthMap;
-    Layers layers;
+    // Layers layers;
 
     //true : command to mavros_node
     bool check;
 
-    //publish target position
-    ros::Publisher local_pos_pub;
+    //targetPose
     geometry_msgs::PoseStamped setPose;
     
     //subscribe current position
@@ -30,51 +29,41 @@ private:
     geometry_msgs::PoseStamped curPose;
 
     //convert image msg to cv::Mat
-    image_transport::ImageTransport it_
+    image_transport::ImageTransport it_;
     image_transport::Subscriber image_sub_;
+
+    void imageCb(const sensor_msgs::ImageConstPtr& msg);
+    void imageCbForGzb(const sensor_msgs::ImageConstPtr& msg);
+    void curPoseCb(const geometry_msgs::PoseStampedConstPtr& msg);
 
     //for send gzb msg
     bool fromGzb;
+
+    //debug frame
+    bool originImgWindow;
+    const std::string ORIGIN_IMG_WINDOW = "Original image";
+
 public:
-    LocalPathPlanning(bool fromGzb = false);
-    ~ImageConverter() = default;
+    LocalPathPlanning(ros::NodeHandle &nh, bool fromGzb = false);
+    ~LocalPathPlanning() = default;
 
     /**
      * @brief update check, pose
      **/
     void update();
-    void imageCb(const sensor_msgs::ImageConstPtr& msg);
-    void imageCbForGzb(const sensor_msgs::ImageConstPtr& msg);
-    void curPoseCb(const geometry_msgs::PoseStampedConstPtr& msg);
-    void publish();
-    inline void getCheck(){
-        return check;
+
+    inline bool getCheck() const
+    {
+        return this->check;
+    }
+
+    inline geometry_msgs::PoseStamped getPose() const
+    {
+        return this->setPose;
     }
 };
 
-class Layers{
-private:
-    cv::Mat bin;
-    cv::Mat cost;
-    cv::Mat dist_cost;
-    const int width_block;
-    const int height_block;
-    const float fov_h;
-    const float fov_v;
-    const float threshold;
 
-    bool isGzb;
-public:
-    //in real world
-    Layers();
-
-    //in gazebo
-    Layers(bool isGzb);
-
-
-    ~Layers() = default;
-    void update(const cv::Mat &depthMap);
-};
 
 
 }

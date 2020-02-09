@@ -1,32 +1,17 @@
-#include "pathmaker/wpGenerator.h"
-
 #include <ros/ros.h>
 #include <mavros_msgs/WaypointPush.h>
 #include <mavros_msgs/CommandHome.h>
 #include <mavros_msgs/WaypointClear.h>
 #include <mavros_msgs/HomePosition.h>
 #include <mavros_msgs/CommandCode.h>
+#include <mavros_msgs/Waypoint.h>
+#include "pathmaker/wpGenerator.h"
 
 namespace pm{
 
-// WpGenerator::WpGenerator()
-// {
-//     ros::NodeHandle nh;
-//     wp_clear_client = nh.serviceClient<mavros_msgs::WaypointClear>
-//             ("/mavros/mission/clear");
-//     wp_srv_client = nh.serviceClient<mavros_msgs::WaypointPush>
-//             ("/mavros/mission/push");
-//     set_home_client = nh.serviceClient<mavros_msgs::CommandHome>
-//             ("/mavros/cmd/set_home");
-//     home_pos_sub = nh.subscribe<mavros_msgs::HomePosition>
-//             ("/mavros/home_position/home",1, homePosCb);
-// }
-
-WpGenerator::WpGenerator(_Float64 lat, _Float64 lon)
-    : target_lat(lat)
-    , target_lon(lon)
+WpGenerator::WpGenerator(ros::NodeHandle &node_handle)
+    : nh(node_handle)
 {
-    ros::NodeHandle nh;
     wp_clear_client = nh.serviceClient<mavros_msgs::WaypointClear>
             ("/mavros/mission/clear");
     wp_srv_client = nh.serviceClient<mavros_msgs::WaypointPush>
@@ -34,9 +19,8 @@ WpGenerator::WpGenerator(_Float64 lat, _Float64 lon)
     set_home_client = nh.serviceClient<mavros_msgs::CommandHome>
             ("/mavros/cmd/set_home");
     home_pos_sub = nh.subscribe<mavros_msgs::HomePosition>
-            ("/mavros/home_position/home",1, homePosCb);
+            ("/mavros/home_position/home",1, &WpGenerator::homePosCb, this);
 }
-
 
 void WpGenerator::calSubWP()
 {
@@ -48,18 +32,18 @@ void WpGenerator::calSubWP()
     addLand(target_lat, target_lon, 10);
 }
 
-void WpGenerator::homePosCb(const mavros_msgs::HomePosition::ConstPtr& msg)
+void WpGenerator::homePosCb(const mavros_msgs::HomePositionConstPtr& msg)
 {
-    home_lat = msg->geo.latitude;
-    home_lon = msg->geo.longitude;
+    this->home_lat = msg->geo.latitude;
+    this->home_lon = msg->geo.longitude;
 }
 
 
 void WpGenerator::addWP(_Float64 lat, _Float64 lon, _Float64 alt)
 {
     mavros_msgs::Waypoint wp_msg;
-    wp_msg.frame = FRAME_GLOBAL_REL_ALT; // mavros_msgs::Waypoint::FRAME_GLOBAL;
-    wp_msg.command = NAV_WAYPOINT; //waypoint
+    wp_msg.frame = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT; // mavros_msgs::Waypoint::FRAME_GLOBAL;
+    wp_msg.command = mavros_msgs::CommandCode::NAV_WAYPOINT; //waypoint
     //wp_msg.is_current = true;
     wp_msg.autocontinue = true;
 
@@ -86,8 +70,8 @@ void WpGenerator::addWP(_Float64 lat, _Float64 lon, _Float64 alt)
 void WpGenerator::addLand(_Float64 lat, _Float64 lon, _Float64 alt)
 {
     mavros_msgs::Waypoint wp_msg;
-    wp_msg.frame = FRAME_GLOBAL_REL_ALT; // mavros_msgs::Waypoint::FRAME_GLOBAL;
-    wp_msg.command = NAV_LAND; //land
+    wp_msg.frame = mavros_msgs::Waypoint::FRAME_GLOBAL_REL_ALT; // mavros_msgs::Waypoint::FRAME_GLOBAL;
+    wp_msg.command = mavros_msgs::CommandCode::NAV_LAND; //land
     //wp_msg.is_current = true;
     wp_msg.autocontinue = true;
 
@@ -100,7 +84,6 @@ void WpGenerator::addLand(_Float64 lat, _Float64 lon, _Float64 alt)
      * 6: Longitude.		
      * 7: Landing altitude (ground level in current frame).		m
      **/
-
     wp_msg.param1 = 0;
     wp_msg.param2 = 0;
     wp_msg.param3 = 0;
@@ -111,20 +94,20 @@ void WpGenerator::addLand(_Float64 lat, _Float64 lon, _Float64 alt)
     wp_push_srv.request.waypoints.push_back(wp_msg);
 }
 
-void WpGenerator::pushWP()
+bool WpGenerator::pushWP()
 {
     if (wp_srv_client.call(wp_push_srv) && wp_push_srv.response.success)
     {
-        ROS_INFO("Success:%d", (bool)wp_push_srv.response.success);
+        ROS_INFO("Waypoint push success");
     }
     else
     {
         ROS_ERROR("Waypoint couldn't been sent");
-        ROS_INFO("Success:%d", (bool)wp_push_srv.response.success);
     }
+    return wp_push_srv.response.success;
 }
 
-void WpGenerator::current2Home()
+bool WpGenerator::current2Home()
 {
     set_home_srv.request.current_gps = true;
     if (set_home_client.call(set_home_srv) && set_home_srv.response.success)
@@ -135,11 +118,11 @@ void WpGenerator::current2Home()
     {
         ROS_ERROR("Home position couldn't been changed");
     }
+    return set_home_srv.response.success;
 }
 
-void WpGenerator::cleanWP()
+bool WpGenerator::cleanWP()
 {
-    wp_clear_srv.request = {};
     if (wp_clear_client.call(wp_clear_srv) && wp_clear_srv.response.success)
     {
         ROS_INFO("Waypoint list was cleared");
@@ -148,12 +131,7 @@ void WpGenerator::cleanWP()
     {
         ROS_ERROR("Waypoint list couldn't been cleared");
     }
-}
-
-void WpGenerator::init(){
-    cleanWp();
-    current2Home();
-    pushWP();
+    return wp_clear_srv.response.success;
 }
 
 }
