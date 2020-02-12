@@ -26,10 +26,10 @@ void WpGenerator::calSubWP()
 {
     _Float64 lat_diff = target_lat - home_lat;
     _Float64 lon_diff = target_lon - home_lon;
-    addWP(home_lat, home_lon, 10);
-    addWP(home_lat + lat_diff/3.0, home_lon + lon_diff/3.0, 30);
-    addWP(home_lat + lat_diff*2.0/3.0, home_lon + lon_diff*2.0/3.0, 50);
-    addLand(target_lat, target_lon, 10);
+    addWP(home_lat, home_lon, 3);
+    addWP(home_lat + lat_diff/3.0, home_lon + lon_diff/3.0, 3);
+    addWP(home_lat + lat_diff*2.0/3.0, home_lon + lon_diff*2.0/3.0, 3);
+    addLand(target_lat, target_lon, 3);
 }
 
 void WpGenerator::homePosCb(const mavros_msgs::HomePositionConstPtr& msg)

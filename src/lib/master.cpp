@@ -17,8 +17,8 @@ Master::Master(const bool is_gzb)
 
     state_sub = nh.subscribe<mavros_msgs::State>
             ("mavros/state", 10, &Master::stateCb, this);
-    local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
-            ("mavros/setpoint_position/local", 10);
+    // local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
+    //         ("mavros/setpoint_position/local", 10);
     
     //persistent connection
     arming_client = nh.serviceClient<mavros_msgs::CommandBool>
@@ -31,88 +31,34 @@ Master::Master(const bool is_gzb)
     }
 
     //waypoint mode
-    wpG.setTarget(47.4042079, 8.5757766);
-    while(!wpG.current2Home()){
-        ros::spinOnce();
-        ros::Duration(5.0).sleep();
-    }
-    while(!wpG.cleanWP()){
-        ros::spinOnce();
-        ros::Duration(5.0).sleep();
-    }
-    while(!wpG.pushWP()){
-        ros::spinOnce();
-        ros::Duration(5.0).sleep();
-    }
 
-    setArm(true);
-    set_mode.request.custom_mode = "AUTO.MISSION";
-    while(current_state.mode != "AUTO.MISSION" || !current_state.armed)
-    {
-        if( current_state.mode != "AUTO.MISSION"){
-            if( set_mode_client.call(set_mode) &&
-                set_mode.response.mode_sent){
-                ROS_INFO("AUTO.MISSION enabled");
-            }
-        } else {
-            if( !current_state.armed){
-                if( arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success){
-                    ROS_INFO("Vehicle armed");
-                }
-            }
-        }
-        ros::spinOnce();
-        ros::Duration(5.0).sleep();
-    }
-    ROS_INFO("MISSION START!");
+
+    // setArm(true);
+    // set_mode.request.custom_mode = "AUTO.MISSION";
+    // while(current_state.mode != "AUTO.MISSION" || !current_state.armed)
+    // {
+    //     if( current_state.mode != "AUTO.MISSION"){
+    //         if( set_mode_client.call(set_mode) &&
+    //             set_mode.response.mode_sent){
+    //             ROS_INFO("AUTO.MISSION enabled");
+    //         }
+    //     } else {
+    //         if( !current_state.armed){
+    //             if( arming_client.call(arm_cmd) &&
+    //                 arm_cmd.response.success){
+    //                 ROS_INFO("Vehicle armed");
+    //             }
+    //         }
+    //     }
+    //     ros::spinOnce();
+    //     ros::Duration(5.0).sleep();
+    // }
+    // ROS_INFO("MISSION START!");
 }
 
 void Master::update(const ros::TimerEvent &e){
     lp.update();
-    if(lp.getCheck()){
-        local_pos_pub.publish(lp.getPose());
-        set_mode.request.custom_mode = "OFFBOARD";
-        if( current_state.mode != "OFFBOARD" &&
-            (ros::Time::now() - last_request > ros::Duration(5.0))){
-            if( set_mode_client.call(set_mode) &&
-                set_mode.response.mode_sent){
-                ROS_INFO("Offboard enabled");
-            }
-            last_request = ros::Time::now();
-        } else {
-            if( !current_state.armed &&
-                (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if( arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success){
-                    ROS_INFO("Vehicle armed");
-                }
-                last_request = ros::Time::now();
-            }
-        }
-    }
-    else if(current_state.mode != "AUTO.MISSION")
-    {
-        set_mode.request.custom_mode = "AUTO.MISSION";
-        if( current_state.mode != "AUTO.MISSION" &&
-            (ros::Time::now() - last_request > ros::Duration(5.0))){
-            if( set_mode_client.call(set_mode) &&
-                set_mode.response.mode_sent){
-                ROS_INFO("AUTO.MISSION enabled");
-            }
-            last_request = ros::Time::now();
-        } else {
-            if( !current_state.armed &&
-                (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if( arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success){
-                    ROS_INFO("Vehicle armed");
-                }
-                last_request = ros::Time::now();
-            }
-        }
-
-    }
+    // ros::spinOnce();
 }
 
 void Master::spin(){
@@ -133,8 +79,86 @@ void Master::spin(){
 	spinner.start();
 	// ros::waitForShutdown();
 
+    wpG.setTarget(47.4042079, 8.5757766);
+    // while(!wpG.current2Home()){
+    //     ros::spinOnce();
+    //     ros::Duration(5.0).sleep();
+    // }
+    while(!wpG.cleanWP()){
+        ros::spinOnce();
+        ros::Duration(5.0).sleep();
+    }
+    while(!wpG.pushWP()){
+        ros::spinOnce();
+        ros::Duration(5.0).sleep();
+    }
+
+    setArm(true);
+    // set_mode.request.custom_mode = "AUTO.MISSION";
+    // while(current_state.mode != "AUTO.MISSION" || !current_state.armed)
+    // {
+    //     if( current_state.mode != "AUTO.MISSION"){
+    //         if( set_mode_client.call(set_mode) &&
+    //             set_mode.response.mode_sent){
+    //             ROS_INFO("AUTO.MISSION enabled");
+    //         }
+    //     } else {
+    //         if( !current_state.armed){
+    //             if( arming_client.call(arm_cmd) &&
+    //                 arm_cmd.response.success){
+    //                 ROS_INFO("Vehicle armed");
+    //             }
+    //         }
+    //     }
+    //     ros::spinOnce();
+    //     ros::Duration(5.0).sleep();
+    // }
+
     // ros::spin();
     while(ros::ok()){
+        if(lp.getCheck()){
+            // local_pos_pub.publish(lp.getPose());
+            set_mode.request.custom_mode = "OFFBOARD";
+            if( current_state.mode != "OFFBOARD" &&
+                (ros::Time::now() - last_request > ros::Duration(5.0))){
+                if( set_mode_client.call(set_mode) &&
+                    set_mode.response.mode_sent){
+                    ROS_INFO("Offboard enabled");
+                }
+                last_request = ros::Time::now();
+            } else {
+                if( !current_state.armed &&
+                    (ros::Time::now() - last_request > ros::Duration(5.0))){
+                    if( arming_client.call(arm_cmd) &&
+                        arm_cmd.response.success){
+                        ROS_INFO("Vehicle armed");
+                    }
+                    last_request = ros::Time::now();
+                }
+            }
+        }
+        else if(current_state.mode != "AUTO.MISSION" || !current_state.armed)
+        {
+            set_mode.request.custom_mode = "AUTO.MISSION";
+            if( current_state.mode != "AUTO.MISSION" &&
+                (ros::Time::now() - last_request > ros::Duration(5.0))){
+                if( set_mode_client.call(set_mode) &&
+                    set_mode.response.mode_sent){
+                    ROS_INFO("AUTO.MISSION enabled");
+                }
+                last_request = ros::Time::now();
+            } else {
+                if( !current_state.armed &&
+                    (ros::Time::now() - last_request > ros::Duration(5.0))){
+                    if( arming_client.call(arm_cmd) &&
+                        arm_cmd.response.success){
+                        ROS_INFO("Vehicle armed");
+                    }
+                    last_request = ros::Time::now();
+                }
+            }
+        }
+
         ros::spinOnce();
         rate.sleep();
     }

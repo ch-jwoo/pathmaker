@@ -34,7 +34,7 @@ private:
     ros::ServiceClient set_mode_client;
     mavros_msgs::SetMode set_mode;
 
-    ros::Publisher local_pos_pub;
+    // ros::Publisher local_pos_pub;
 
     LocalPathPlanning lp;
     WpGenerator wpG;

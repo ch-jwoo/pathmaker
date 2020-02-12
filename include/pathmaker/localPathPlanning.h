@@ -16,12 +16,13 @@ private:
     ros::NodeHandle nh;
 
     cv::Mat depthMap;
-    // Layers layers;
+    Layers layers;
 
     //true : command to mavros_node
     bool check;
 
     //targetPose
+    ros::Publisher target_pos_pub;
     geometry_msgs::PoseStamped setPose;
     
     //subscribe current position
@@ -31,9 +32,10 @@ private:
     //convert image msg to cv::Mat
     image_transport::ImageTransport it_;
     image_transport::Subscriber image_sub_;
+    
+    ros::Time last_mode_time;
 
     void imageCb(const sensor_msgs::ImageConstPtr& msg);
-    void imageCbForGzb(const sensor_msgs::ImageConstPtr& msg);
     void curPoseCb(const geometry_msgs::PoseStampedConstPtr& msg);
 
     //for send gzb msg
@@ -51,6 +53,8 @@ public:
      * @brief update check, pose
      **/
     void update();
+
+    void positionPub();
 
     inline bool getCheck() const
     {
