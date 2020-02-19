@@ -40,6 +40,8 @@ private:
     mavros_msgs::SetMode set_mode;
 
     // ros::Publisher local_pos_pub;
+    ros::Time detectedTime;
+    bool obstacleDtected;
 
     LocalPathPlanning lp;
     WpGenerator wpG;

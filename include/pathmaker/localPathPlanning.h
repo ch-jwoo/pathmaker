@@ -8,6 +8,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <geometry_msgs/PoseStamped.h>
+#include "flagChecker.h"
 
 namespace pm{
 
@@ -20,7 +21,7 @@ private:
 
     //true : command to mavros_node
     bool check;
-
+    delayFlag obstacleFlag;   
     //targetPose
     ros::Publisher target_pos_pub;
     geometry_msgs::PoseStamped setPose;

@@ -119,7 +119,6 @@ void Master::spin(){
 
     // ros::spin();
     while(ros::ok()){
-
         if(lp.getCheck() && rel_alt.data>2.0){
             // local_pos_pub.publish(lp.getPose());
             set_mode.request.custom_mode = "OFFBOARD";
