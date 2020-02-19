@@ -5,6 +5,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
+#include <std_msgs/Float64.h>
 
 namespace pm{
 
@@ -17,6 +18,8 @@ Master::Master(const bool is_gzb)
 
     state_sub = nh.subscribe<mavros_msgs::State>
             ("mavros/state", 10, &Master::stateCb, this);
+    alt_sub = nh.subscribe<std_msgs::Float64>
+            ("mavros/global_position/rel_alt", 10, &Master::altcb, this);        
     // local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
     //         ("mavros/setpoint_position/local", 10);
     
@@ -116,7 +119,8 @@ void Master::spin(){
 
     // ros::spin();
     while(ros::ok()){
-        if(lp.getCheck()){
+
+        if(lp.getCheck() && rel_alt.data>2.0){
             // local_pos_pub.publish(lp.getPose());
             set_mode.request.custom_mode = "OFFBOARD";
             if( current_state.mode != "OFFBOARD" &&
@@ -171,5 +175,8 @@ void Master::stateCb(const mavros_msgs::State::ConstPtr& msg)
 {
     current_state = *msg;
 }
-
+void Master::altcb(const std_msgs::Float64::ConstPtr& msg)
+{
+    rel_alt = *msg;
+}
 }

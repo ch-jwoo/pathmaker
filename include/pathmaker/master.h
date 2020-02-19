@@ -9,6 +9,8 @@
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <cstring>
+#include <std_msgs/Float64.h>
+
 
 namespace pm{
 
@@ -28,6 +30,9 @@ private:
     ros::Subscriber state_sub;
     mavros_msgs::State current_state;
 
+    ros::Subscriber alt_sub;
+    std_msgs::Float64 rel_alt;
+
     ros::ServiceClient arming_client;
     mavros_msgs::CommandBool arm_cmd;
 
@@ -44,6 +49,8 @@ private:
     void terminalInput();
     
     void stateCb(const mavros_msgs::State::ConstPtr& msg);
+
+    void altcb(const std_msgs::Float64::ConstPtr& msg);
 
     void update(const ros::TimerEvent &e);
     
