@@ -1,12 +1,12 @@
-#ifndef __CAMERA_H
-#define __CAMERA_H
+#ifndef __DELAYFLAG_H
+#define __DELAYFLAG_H
 #include <ros/ros.h>
 
 namespace pm{
 
 //true -> false : delay some Duration
 //false -> true : immediately
-class delayFlag
+class DelayFlag
 {
 private:
     bool flag;
@@ -14,31 +14,29 @@ private:
     ros::Time lastTime;
     ros::Duration dur;
 public:
-    flagChecker(bool flag = false, double dur = 5.0)
+    DelayFlag(bool flag = false, double dur = 5.0)
         : dur(dur)
         , flag(flag)
         , lastFlag(flag)
     {
 
     }
-    bool check(bool originalFlag)
+    bool check(bool inputFlag)
     {
-        if(originalFlag == false)
-        {
-            flag = false;
+        if(flag == false){
+            flag = inputFlag;
         }
-        else
-        {
-            if(originalFlag != lastFlag)
-            {
+        else{
+            if(lastFlag != inputFlag){
                 lastTime = ros::Time::now();
             }
-
-            if(ros::Time::now()- lastTime > dur)
-            {
-                flag = true;
+            else{
+                if(ros::Time::now() - lastTime > dur){
+                    flag = true;
+                }
             }
         }
+        lastFlag = inputFlag;
         return flag;
     }
 
@@ -46,7 +44,9 @@ public:
     {
         return flag;
     }
-}
+};
+
+
 }
 
 

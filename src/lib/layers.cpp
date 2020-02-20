@@ -8,32 +8,16 @@
 namespace pm{
 
 Layers::Layers()
-    : LAYERS_HEIGHT(9)
-    , LAYERS_WIDTH(15)
-    , FOV_H(87)
-    , FOV_V(58)
-    , THRESHOLD(5.0)
-    , ORIGIN_WIDTH(848)
-    , ORIGIN_HEIGHT(480)
-    , MAXDISTANCE(10.0)
 {
     bin = cv::Mat::zeros(LAYERS_HEIGHT,LAYERS_WIDTH,CV_8UC1);
     dist = cv::Mat::zeros(LAYERS_HEIGHT,LAYERS_WIDTH,CV_32F);
     cost = cv::Mat::zeros(LAYERS_HEIGHT,LAYERS_WIDTH,CV_32F);
-    rect = cv::Rect2i(0,0,ORIGIN_WIDTH/LAYERS_WIDTH, ORIGIN_HEIGHT/LAYERS_HEIGHT);
 }
 
 void Layers::update(const cv::Mat &img){
-
-    // for(int i=0; rect.tl().y <= img.cols;)
-    // {
-    //     for(int j=0; rect.br().x <= img.rows;){
-    //         dist.at<double> = cv::mean(cv::Mat(img, rect));
-    //         rect(rect.tl().x + rect.size().width, rect.tl().y + rect.size().height);
-    //     }
-    // }
     int width_cut = ORIGIN_WIDTH/LAYERS_WIDTH;
-    int height_cut = ORIGIN_HEIGHT/LAYERS_HEIGHT; 
+    int height_cut = ORIGIN_HEIGHT/LAYERS_HEIGHT;
+
     for(int k=0;k<LAYERS_HEIGHT;k++)
     {
         for(int l=0;l<LAYERS_WIDTH;l++)

@@ -11,6 +11,7 @@
 #include <cstring>
 #include <std_msgs/Float64.h>
 
+#include "delayFlag.h"
 
 namespace pm{
 
@@ -20,70 +21,65 @@ namespace pm{
  **/
 class Master{
 private:
-    const std::string OFFBOARD = "OFFBOARD";
-    const std::string MISSION = "AUTO.MISSION";
+    // static const std::string OFFBOARD;
+    // static const std::string MISSION;
+
+    enum eMode{OFFBOARD, MISSION};
     
     ros::NodeHandle nh;
-    ros::Rate rate;
-    ros::Time last_request;
 
-    ros::Subscriber state_sub;
-    mavros_msgs::State current_state;
-
-    ros::Subscriber alt_sub;
-    std_msgs::Float64 rel_alt;
-
-    ros::ServiceClient arming_client;
-    mavros_msgs::CommandBool arm_cmd;
-
-    ros::ServiceClient set_mode_client;
-    mavros_msgs::SetMode set_mode;
-
-    // ros::Publisher local_pos_pub;
-    ros::Time detectedTime;
-    bool obstacleDtected;
-
-    LocalPathPlanning lp;
-    WpGenerator wpG;
-    
-    const bool is_gzb;
-
-    void terminalInput();
-    
+    //subscribe, publish, service
+    ros::Subscriber stateSub;
+    mavros_msgs::State currentState;
     void stateCb(const mavros_msgs::State::ConstPtr& msg);
 
-    void altcb(const std_msgs::Float64::ConstPtr& msg);
+    ros::Subscriber poseSub;
+    geometry_msgs::PoseStamped curPose;//NED
+    void poseCb(const geometry_msgs::PoseStampedConstPtr& msg);
 
-    void update(const ros::TimerEvent &e);
+    ros::Publisher posePub;
+
+    ros::ServiceClient armingClient;
+    mavros_msgs::CommandBool armCmd;
+
+    ros::ServiceClient setModeClient;
+    mavros_msgs::SetMode targetMode;
+
+    //for checking obstacle
+    DelayFlag obstacleFlag;
+
+    //for obstacle avoidance
+    LocalPathPlanning lp;
+
+    //for mission
+    WpGenerator wpG;
     
+    inline bool obstacleCheck(){
+
+        return true;
+    }
+    inline double getAlt(){
+        return curPose.pose.position.z;
+    }
+    inline bool armCheck(){
+        return currentState.armed;
+    }
     
+    void setTarget(double lat, double lon);
 
-
-    inline std::string getTargetMode() const
-    {
-        return set_mode.request.custom_mode;
-    }
-
-    inline std::string getCurrentMode() const
-    {
-        return current_state.mode;
-    }
-
-    inline void setTargetMode(const std::string &str){
-        set_mode.request.custom_mode = str;
-    }
-
-    inline void setArm(const bool arming)
-    {
-        arm_cmd.request.value = arming;
-    }
+    void setMode(int eMode);
+    
 
 public:
-    Master(const bool is_gzb = false);
+    Master();
     ~Master() {};
 
     void spin();
 };
+
+
+// const std::string Master::OFFBOARD = "OFFBOARD";
+// const std::string Master::MISSION = "AUTO.MISSION";
 
 }
 
