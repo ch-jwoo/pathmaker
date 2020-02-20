@@ -16,6 +16,7 @@ LocalPathPlanning::LocalPathPlanning(ros::NodeHandle &nh, geometry_msgs::PoseSta
 {
     image_sub_ = it_.subscribe("/camera/depth/image_rect_raw", 1,
         &LocalPathPlanning::imageCb, this);
+    ROS_INFO("obtical ovidance ready");
 }
 
 void LocalPathPlanning::imageCb(const sensor_msgs::ImageConstPtr& msg)
@@ -53,7 +54,7 @@ void LocalPathPlanning::imageCb(const sensor_msgs::ImageConstPtr& msg)
             obstacleDetect = false;
         }
         else{
-            check = true;
+            obstacleDetect = true;
         }
     }
     catch (cv_bridge::Exception& e)
@@ -73,7 +74,7 @@ void LocalPathPlanning::calcTargetPose()
                     , curPose.pose.orientation.y
                     , curPose.pose.orientation.z
                     , curPose.pose.orientation.w);
-    tfScalar curRoll, curPitch, curYaw;
+    tf2Scalar curRoll, curPitch, curYaw;
     tf2::Matrix3x3 temp(q);
     temp.getRPY(curRoll, curPitch, curYaw);
 

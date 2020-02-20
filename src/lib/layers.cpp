@@ -8,6 +8,17 @@
 namespace pm{
 
 Layers::Layers()
+    : Kd(4.0f)
+    , Kh(1.0f)
+    , Ke(1.0f)
+    , ORIGIN_WIDTH(630)
+    , ORIGIN_HEIGHT(468)
+    , LAYERS_WIDTH(9)
+    , LAYERS_HEIGHT(15)
+    , FOV_H(87.0)
+    , FOV_V(58.0)
+    , THRESHOLD(5.0)
+    , MAXDISTANCE(10.0)
 {
     bin = cv::Mat::zeros(LAYERS_HEIGHT,LAYERS_WIDTH,CV_8UC1);
     dist = cv::Mat::zeros(LAYERS_HEIGHT,LAYERS_WIDTH,CV_32F);
@@ -139,7 +150,7 @@ void Layers::update(const cv::Mat &img){
     // std::cout<<"cost: \n"<<cost<<std::endl<<std::endl;
 
     cv::minMaxLoc(cost, &minVal, &maxVal, &minLoc, &maxLoc, ~bin);//얘가 문제
-    printf("minLoc : %d, %d\n", minLoc.x, minLoc.y);
+    // printf("minLoc : %d, %d\n", minLoc.x, minLoc.y);
     this->azimuth= ((minLoc.x-7)*(FOV_H/15.0f))*(M_PI/180.0);//*(M_PI/180.0);  //degree
     this->elevation= ((4-minLoc.y)*(FOV_V/9.0f))*(M_PI/180.0);
     

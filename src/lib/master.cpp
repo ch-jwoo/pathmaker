@@ -10,65 +10,63 @@
 namespace pm{
 
 Master::Master()
-    : lp(nh, curPose)
+    : nh()
+    , lp(nh, curPose)
     , wpG(nh)
 {
     stateSub = nh.subscribe<mavros_msgs::State>
-            ("mavros/state", 1, &Master::stateCb, this);
+        ("mavros/state", 1, &Master::stateCb, this);
     posePub = nh.advertise<geometry_msgs::PoseStamped>
         ("mavros/setpoint_position/local", 1);
 
     //persistent connection
-    arming_client = nh.serviceClient<mavros_msgs::CommandBool>
-            ("mavros/cmd/arming", true);
-    set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
-            ("mavros/set_mode", true);
+    armingClient = nh.serviceClient<mavros_msgs::CommandBool>
+        ("mavros/cmd/arming", true);
+    setModeClient = nh.serviceClient<mavros_msgs::SetMode>
+        ("mavros/set_mode", true);
 
-    while(ros::ok() && !current_state.connected){
-        ros::spinOnce();
-        rate.sleep();
-    }
 }
 
 void Master::setMode(int eMode){
-    switch (eMode)
-    {
-    case OFFBOARD:
-        targetMode.request.custom_mode = "OFFBOARD";
-        break;
-    case MISSION:
-        targetMode.request.custom_mode = "AUTO.MISSION";
-        break;
-    default:
-        ROS_ERROR("setMode Error");
-        break;
+    // switch (eMode)
+    // {
+    // case OFFBOARD:
+    //     targetMode.request.custom_mode = "OFFBOARD";
+    //     break;
+    // case MISSION:
+    //     targetMode.request.custom_mode = "AUTO.MISSION";
+    //     break;
+    // default:
+    //     ROS_ERROR("setMode Error");
+    //     break;
+    // }
+    targetMode.request.custom_mode = MODE[eMode];
+    if( setModeClient.call(targetMode) && targetMode.response.mode_sent ){
+        std::cout<<"Mode change : " << MODE[eMode] << std::endl;
+    }
+}
+void Master::setMode(std::string mode){
+    targetMode.request.custom_mode = mode;
+    if( setModeClient.call(targetMode) && targetMode.response.mode_sent ){
+        std::cout<<"Mode change : " << mode << std::endl;
     }
 }
 
+
+void Master::setArm(bool arming){
+    armCmd.request.value = arming;
+    if(armingClient.call(armCmd) && armCmd.response.success){
+        ROS_INFO("Vehicle %s", arming ? "armed" : "disarmed");
+    }
+}
 // void Master::update(const ros::TimerEvent &e){
 //     lp.update();
 //     // ros::spinOnce();
 // }
 
-void Master::spin(){
-    ros::AsyncSpinner spinner(4 /* threads */);
 
-    last_request = ros::Time::now();
-    ros::Timer diag_timer = nh.createTimer(//spinning func
-			ros::Duration(0.1), &Master::update, this);
-    
-
-    // auto diag_timer = nh.createTimer(//spinning func
-	// 		ros::Duration(0.5),
-	// 		[&](const ros::TimerEvent &) {
-
-	// 		});
-    
-	diag_timer.start();
-	spinner.start();
-	// ros::waitForShutdown();
-
-    wpG.setTarget(47.4042079, 8.5757766);
+void Master::setTarget(double lat, double lon){
+    wpG.setTarget(lat, lon);
     // while(!wpG.current2Home()){
     //     ros::spinOnce();
     //     ros::Duration(5.0).sleep();
@@ -81,8 +79,117 @@ void Master::spin(){
         ros::spinOnce();
         ros::Duration(5.0).sleep();
     }
+}
 
-    setArm(true);
+void Master::modeCb(const ros::TimerEvent &e){
+    static auto pubTimer = nh.createTimer(
+                            ros::Duration(0.1),
+                            [&](const ros::TimerEvent &) {
+                                posePub.publish(lp.getTargetPose());
+                            },
+                            false, 
+                            false);
+    static ros::Time modeRequest = ros::Time::now();
+    static ros::Time armRequest = ros::Time::now();
+    static std::string lastMode = getCurMode();
+
+    obstacleFlag.check(lp.obstacleDetected());
+    // if(obstacleFlag.getFlag() && getAlt()>2.0){ // OFFBOARD
+    //     pubTimer.start();
+    //     if( getCurMode() != MODE[OFFBOARD] && // current mode != offboard
+    //         ros::Time::now() - modeRequest > ros::Duration(5.0)){
+    //         setMode(OFFBOARD);
+    //         modeRequest = ros::Time::now();
+    //     }
+    // }
+    // else{//MISSION
+    //     pubTimer.stop();
+    //     if( getCurMode() != MODE[MISSION] && // current mode != mission
+    //         ros::Time::now() - modeRequest > ros::Duration(5.0)){
+    //         setMode(MISSION);
+    //         modeRequest = ros::Time::now();
+    //     }
+    // }
+    
+    
+    if(getCurMode() == MODE[MISSION]){
+        std::cout<<"MISSION"<<std::endl;
+        if(obstacleFlag.getFlag() && getAlt()>2.0){ // obstacle detected
+            pubTimer.start();
+            setMode(OFFBOARD);
+            lastMode = getCurMode();
+        }
+    }
+    else{
+        pubTimer.stop();
+
+        if(getCurMode() == MODE[OFFBOARD]){//avoidance
+            std::cout<<"OFFBOARD"<<std::endl;
+            if(!obstacleFlag.getFlag()){
+                setMode(lastMode);
+            }
+        }
+        else if(getCurMode() == MODE[MAN]){
+            std::cout<<"MANUAL"<<std::endl;
+            if(obstacleFlag.getFlag() && getAlt()>2.0){ // obstacle detected
+                pubTimer.start();
+                setMode(OFFBOARD);
+                lastMode = getCurMode();
+            }
+        }
+        else if(getCurMode() == MODE[FORCEDMAN]){
+            std::cout<<"FORCED MANUAL"<<std::endl;
+            /*empty*/
+        }
+    }
+    if(!armCheck() && ros::Time::now() - armRequest > ros::Duration(5.0)){
+        setArm(true);
+    }
+}
+
+
+void Master::spin(){
+    while(ros::ok() && !currentState.connected){
+        ros::spinOnce();
+        ros::Duration(1.0).sleep();
+    }
+    ROS_INFO("Mavros connected");
+
+    ros::AsyncSpinner spinner(4 /* threads */);
+
+    // ros::Timer diag_timer = nh.createTimer(//spinning func
+	// 		ros::Duration(0.1), &Master::update, this);
+    
+
+    // auto diag_timer = nh.createTimer(//spinning func
+	// 		ros::Duration(0.5),
+	// 		[&](const ros::TimerEvent &) {
+
+	// 		});
+	// diag_timer.start();
+	
+    spinner.start();
+    
+    setTarget(47.4042079, 8.5757766);
+    auto modeCheckTimer = nh.createTimer(
+            ros::Duration(0.1), &Master::modeCb, this);
+    
+    ros::waitForShutdown();
+    // wpG.setTarget(47.4042079, 8.5757766);
+    // while(!wpG.current2Home()){
+    //     ros::spinOnce();
+    //     ros::Duration(5.0).sleep();
+    // }
+    // while(!wpG.cleanWP()){
+    //     ros::spinOnce();
+    //     ros::Duration(5.0).sleep();
+    // }
+    // while(!wpG.pushWP()){
+    //     ros::spinOnce();
+    //     ros::Duration(5.0).sleep();
+    // }
+
+    // setArm(true);
     // set_mode.request.custom_mode = "AUTO.MISSION";
     // while(current_state.mode != "AUTO.MISSION" || !current_state.armed)
     // {
@@ -104,53 +211,6 @@ void Master::spin(){
     // }
 
     // ros::spin();
-    while(ros::ok()){
-        if(lp.getCheck() && rel_alt.data>2.0){
-            // local_pos_pub.publish(lp.getPose());
-            set_mode.request.custom_mode = "OFFBOARD";
-            if( current_state.mode != "OFFBOARD" &&
-                (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if( set_mode_client.call(set_mode) &&
-                    set_mode.response.mode_sent){
-                    ROS_INFO("Offboard enabled");
-                }
-                last_request = ros::Time::now();
-            } else {
-                if( !current_state.armed &&
-                    (ros::Time::now() - last_request > ros::Duration(5.0))){
-                    if( arming_client.call(arm_cmd) &&
-                        arm_cmd.response.success){
-                        ROS_INFO("Vehicle armed");
-                    }
-                    last_request = ros::Time::now();
-                }
-            }
-        }
-        else if(current_state.mode != "AUTO.MISSION" || !current_state.armed)
-        {
-            set_mode.request.custom_mode = "AUTO.MISSION";
-            if( current_state.mode != "AUTO.MISSION" &&
-                (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if( set_mode_client.call(set_mode) &&
-                    set_mode.response.mode_sent){
-                    ROS_INFO("AUTO.MISSION enabled");
-                }
-                last_request = ros::Time::now();
-            } else {
-                if( !current_state.armed &&
-                    (ros::Time::now() - last_request > ros::Duration(5.0))){
-                    if( arming_client.call(arm_cmd) &&
-                        arm_cmd.response.success){
-                        ROS_INFO("Vehicle armed");
-                    }
-                    last_request = ros::Time::now();
-                }
-            }
-        }
-
-        ros::spinOnce();
-        rate.sleep();
-    }
 
 	ROS_INFO("Stopping path planning...");
 	spinner.stop();
@@ -158,10 +218,7 @@ void Master::spin(){
 
 void Master::stateCb(const mavros_msgs::State::ConstPtr& msg)
 {
-    current_state = *msg;
+    currentState = *msg;
 }
-void Master::altcb(const std_msgs::Float64::ConstPtr& msg)
-{
-    rel_alt = *msg;
-}
+
 }

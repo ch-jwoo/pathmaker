@@ -17,10 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_srvs
   cv_bridge
   image_transport
-  message_generation
   pcl_conversions
   pcl_ros
-  gazebo_msgs
 )
 
 find_package(OpenCV 3 REQUIRED)
@@ -80,10 +78,10 @@ add_message_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs#   mavros_msgs#   std_msgs
-)
+#generate_messages(
+#  DEPENDENCIES
+#  std_msgs#   mavros_msgs#   std_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -115,7 +113,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  CATKIN_DEPENDS message_runtime
+#  CATKIN_DEPENDS message_runtime
 #  INCLUDE_DIRS include
 #  LIBRARIES test
 #  CATKIN_DEPENDS geometry_msgs mavros mavros_msgs rosconsole roscpp std_msgs std_srvs
@@ -135,29 +133,10 @@ include_directories(
 )
 
 # Declare a C++ library
-add_library(keyboard
- #src/${PROJECT_NAME}/keyboard.cpp
-  src/lib/keyboard.cpp
-)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(keyboard
-${${PROJECT_NAME}_EXPORTED_TARGETS} 
-${catkin_EXPORTED_TARGETS}
-)
-
-## image process
-# add_library(imgproc
-#   src/lib/ImgProc.cpp
-#   src/lib/ImageConverter.cpp
-#   src/lib/PathRect.cpp
-# )
-# add_dependencies(imgproc
-# ${${PROJECT_NAME}_EXPORTED_TARGETS} 
-# ${catkin_EXPORTED_TARGETS}
-# )
 
 add_library(master
   src/lib/layers.cpp
@@ -173,9 +152,6 @@ add_dependencies(master
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(offb_node 
-  src/offb_node.cpp
-)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -185,61 +161,8 @@ add_executable(offb_node
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(offb_node 
-  keyboard
-  ${${PROJECT_NAME}_EXPORTED_TARGETS} 
-  ${catkin_EXPORTED_TARGETS}
-)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(offb_node
-  keyboard
-  ${catkin_LIBRARIES}
-)
-
-
-## cv_bridge
-add_executable(bridge_test 
-src/bridge_test.cpp
-)
-add_dependencies(bridge_test 
-${${PROJECT_NAME}_EXPORTED_TARGETS} 
-${catkin_EXPORTED_TARGETS}
-)
-target_link_libraries(bridge_test
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
-
-##keyboard
-add_executable(keyboard_node 
-  src/keyboard_node.cpp
-)
-add_dependencies(keyboard_node 
-  keyboard
-  ${${PROJECT_NAME}_EXPORTED_TARGETS} 
-  ${catkin_EXPORTED_TARGETS}
-)
-target_link_libraries(keyboard_node
-  keyboard
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
-
-##imgproc
-# add_executable(imgproc_node 
-#   src/imgproc_node.cpp
-# )
-# add_dependencies(imgproc_node 
-#   imgproc
-#   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
-#   ${catkin_EXPORTED_TARGETS}
-# )
-# target_link_libraries(imgproc_node
-#   imgproc
-#   ${catkin_LIBRARIES}
-#   ${OpenCV_LIBRARIES}
-# )
 
 ##master
 add_executable(master_node 
@@ -268,17 +191,6 @@ target_link_libraries(master_node
 #   ${catkin_LIBRARIES}
 # )
 
-##tf_node
-add_executable(tf_node 
-  src/tf_node.cpp
-)
-add_dependencies(tf_node 
-  ${${PROJECT_NAME}_EXPORTED_TARGETS} 
-  ${catkin_EXPORTED_TARGETS}
-)
-target_link_libraries(tf_node
-  ${catkin_LIBRARIES}
-)
 #############
 ## Install ##
 #############

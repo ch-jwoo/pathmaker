@@ -24,8 +24,9 @@ private:
     // static const std::string OFFBOARD;
     // static const std::string MISSION;
 
-    enum eMode{OFFBOARD, MISSION};
-    
+    enum eMode{OFFBOARD, MISSION, MAN, FORCEDMAN};
+    std::string MODE[4] = {"OFFBOARD", "AUTO.MISSION", "POSCTL", "ALTCTL"};
+
     ros::NodeHandle nh;
 
     //subscribe, publish, service
@@ -54,21 +55,29 @@ private:
     //for mission
     WpGenerator wpG;
     
-    inline bool obstacleCheck(){
-
-        return true;
-    }
+    // inline bool obstacleCheck(){
+    //     /* logic */
+    //     return true;
+    // }
     inline double getAlt(){
         return curPose.pose.position.z;
     }
     inline bool armCheck(){
         return currentState.armed;
     }
-    
+    inline std::string getCurMode(){
+        return currentState.mode;
+    }
     void setTarget(double lat, double lon);
 
     void setMode(int eMode);
-    
+    void setMode(std::string mode);
+
+    void setArm(bool arming);
+
+    void modeCb(const ros::TimerEvent &e);
+
+    void targetPosePubCb(const ros::TimerEvent &e);
 
 public:
     Master();

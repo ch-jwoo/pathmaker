@@ -20,18 +20,18 @@ private:
     cv::Point maxLoc;
 
     //param
-    float Kd = 4.0f;
-    float Kh = 1.0f;
-    float Ke = 1.0f;
+    float Kd;
+    float Kh;
+    float Ke;
 
-    const int ORIGIN_WIDTH = 848;
-    const int ORIGIN_HEIGHT = 480;
-    const int LAYERS_WIDTH = 9;
-    const int LAYERS_HEIGHT = 15;
-    const double FOV_H = 87.0;
-    const double FOV_V = 58.0;
-    const double THRESHOLD = 5.0;
-    const double MAXDISTANCE = 10.0;
+    const int ORIGIN_WIDTH;
+    const int ORIGIN_HEIGHT;
+    const int LAYERS_WIDTH;
+    const int LAYERS_HEIGHT;
+    const double FOV_H;
+    const double FOV_V;
+    const double THRESHOLD;
+    const double MAXDISTANCE;
 
 public:
     Layers();
