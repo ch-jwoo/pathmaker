@@ -24,7 +24,7 @@ private:
     // static const std::string OFFBOARD;
     // static const std::string MISSION;
 
-    enum eMode{OFFBOARD, MISSION, MAN, FORCEDMAN};
+    enum eMode{OFFBOARD, MISSION, MAN, FORCEDMAN};//unordered map 이용해서 구현하면 더 좋을 듯
     std::string MODE[4] = {"OFFBOARD", "AUTO.MISSION", "POSCTL", "ALTCTL"};
 
     ros::NodeHandle nh;
@@ -78,6 +78,13 @@ private:
     void modeCb(const ros::TimerEvent &e);
 
     void targetPosePubCb(const ros::TimerEvent &e);
+
+
+    /**
+     * set Mode offboard, set arm
+     * 
+     **/
+    void initialArming();
 
 public:
     Master();

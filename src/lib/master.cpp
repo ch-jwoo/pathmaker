@@ -28,28 +28,18 @@ Master::Master()
 }
 
 void Master::setMode(int eMode){
-    // switch (eMode)
-    // {
-    // case OFFBOARD:
-    //     targetMode.request.custom_mode = "OFFBOARD";
-    //     break;
-    // case MISSION:
-    //     targetMode.request.custom_mode = "AUTO.MISSION";
-    //     break;
-    // default:
-    //     ROS_ERROR("setMode Error");
-    //     break;
-    // }
     targetMode.request.custom_mode = MODE[eMode];
-    if( setModeClient.call(targetMode) && targetMode.response.mode_sent ){
-        std::cout<<"Mode change : " << MODE[eMode] << std::endl;
-    }
+    setModeClient.call(targetMode);
+    // if( setModeClient.call(targetMode) && getCurMode() == MODE[eMode] ){
+    //     std::cout<<"Mode change : " << MODE[eMode] << std::endl;
+    // }
 }
 void Master::setMode(std::string mode){
     targetMode.request.custom_mode = mode;
-    if( setModeClient.call(targetMode) && targetMode.response.mode_sent ){
-        std::cout<<"Mode change : " << mode << std::endl;
-    }
+    setModeClient.call(targetMode);
+    // if( setModeClient.call(targetMode) && getCurMode() == mode ){
+    //     std::cout<<"Mode change : " << mode << std::endl;
+    // }
 }
 
 
@@ -92,6 +82,7 @@ void Master::modeCb(const ros::TimerEvent &e){
     static ros::Time modeRequest = ros::Time::now();
     static ros::Time armRequest = ros::Time::now();
     static std::string lastMode = getCurMode();
+    static ros::Rate rate(20.0);
 
     obstacleFlag.check(lp.obstacleDetected());
     // if(obstacleFlag.getFlag() && getAlt()>2.0){ // OFFBOARD
@@ -145,6 +136,8 @@ void Master::modeCb(const ros::TimerEvent &e){
     if(!armCheck() && ros::Time::now() - armRequest > ros::Duration(5.0)){
         setArm(true);
     }
+    ros::spinOnce();
+    rate.sleep();
 }
 
 
@@ -166,11 +159,14 @@ void Master::spin(){
 	// 		[&](const ros::TimerEvent &) {
 
 	// 		});
-	// diag_timer.start();
+	// diag_timer.start(); 
 	
     spinner.start();
     
-    setTarget(47.4042079, 8.5757766);
+    setTarget(47.4042079, 8.5757766);//waypoint set
+
+    initialArming();//offboard && arm
+
     auto modeCheckTimer = nh.createTimer(
             ros::Duration(0.1), &Master::modeCb, this);
     
@@ -219,6 +215,36 @@ void Master::spin(){
 void Master::stateCb(const mavros_msgs::State::ConstPtr& msg)
 {
     currentState = *msg;
+}
+
+void Master::initialArming(){
+    ros::Time lastRequest = ros::Time::now();
+    int step = 0;
+    ros::Rate rate(20.0);
+
+    while(getCurMode() != MODE[MISSION] || !armCheck()){
+        posePub.publish(curPose);
+        if(step == 0){
+            if(getCurMode() != MODE[OFFBOARD])
+                setMode(OFFBOARD);
+            else if(!armCheck()){
+                setArm(true);
+            }
+            else{
+                step = 1;
+            }
+        }
+        else if(step == 1){
+            if(!armCheck()){
+                step = 0;
+            }
+            else{
+                setMode(MISSION);
+            }
+        }
+        ros::spinOnce();
+        rate.sleep();
+    }
 }
 
 }
