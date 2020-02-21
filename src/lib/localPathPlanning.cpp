@@ -48,7 +48,8 @@ void LocalPathPlanning::imageCb(const sensor_msgs::ImageConstPtr& msg)
         // cv::waitKey(1);
 
         layers.update(depthMap);
-        // printf("azimuth, elevation : %f, %f, %d\n", layers.getAzimuth(), layers.getElevation(), check);
+        calcTargetPose();
+        // printf("azimuth, elevation : %f, %f, %d\n", layers.getAzimuth(), layers.getElevation(), obstacleDetect);
         if( layers.getAzimuth()<0.0698132 && layers.getAzimuth()>-0.0698132
             && layers.getElevation()<0.1598132 && layers.getElevation()>=0){
             obstacleDetect = false;
@@ -74,6 +75,7 @@ void LocalPathPlanning::calcTargetPose()
                     , curPose.pose.orientation.y
                     , curPose.pose.orientation.z
                     , curPose.pose.orientation.w);
+
     tf2Scalar curRoll, curPitch, curYaw;
     tf2::Matrix3x3 temp(q);
     temp.getRPY(curRoll, curPitch, curYaw);
@@ -90,6 +92,10 @@ void LocalPathPlanning::calcTargetPose()
     targetPose.pose.orientation.y=q.y();
     targetPose.pose.orientation.z=q.z();
     targetPose.pose.orientation.w=q.w();
+    
+
+    // std::cout <<"cur = "<< curPose << std::endl;
+    // std::cout <<"target = "<< targetPose << std::endl;
 }
 
 

@@ -5,6 +5,7 @@
 #include <mavros_msgs/WaypointPush.h>
 #include <mavros_msgs/CommandHome.h>
 #include <mavros_msgs/WaypointClear.h>
+#include <mavros_msgs/WaypointList.h>
 #include <mavros_msgs/HomePosition.h>
 
 namespace pm{
@@ -27,6 +28,11 @@ private:
     
     //subscribe home_pos_sub
     ros::Subscriber home_pos_sub;//현재 subscribe를 계속 하고 있음, 최적화 하려면 키고 끄는 방식으로 바꿔야함
+    void homePosCb(const mavros_msgs::HomePositionConstPtr& msg);
+
+    ros::Subscriber wp_sub;
+    mavros_msgs::WaypointList cur_wp;
+    void wpCb(const mavros_msgs::WaypointListConstPtr& msg);
 
     //target gps
     _Float64 target_lat;
@@ -53,7 +59,7 @@ public:
         calSubWP();
     }
 
-    void homePosCb(const mavros_msgs::HomePositionConstPtr& msg);
+    bool detectTarget();
 
     //push waypoint
     bool pushWP();

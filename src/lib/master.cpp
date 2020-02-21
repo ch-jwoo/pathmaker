@@ -16,6 +16,8 @@ Master::Master()
 {
     stateSub = nh.subscribe<mavros_msgs::State>
         ("mavros/state", 1, &Master::stateCb, this);
+    poseSub = nh.subscribe<geometry_msgs::PoseStamped>
+        ("mavros/local_position/pose", 1, &Master::poseCb, this);
     posePub = nh.advertise<geometry_msgs::PoseStamped>
         ("mavros/setpoint_position/local", 1);
 
@@ -55,22 +57,6 @@ void Master::setArm(bool arming){
 // }
 
 
-void Master::setTarget(double lat, double lon){
-    wpG.setTarget(lat, lon);
-    // while(!wpG.current2Home()){
-    //     ros::spinOnce();
-    //     ros::Duration(5.0).sleep();
-    // }
-    while(!wpG.cleanWP()){
-        ros::spinOnce();
-        ros::Duration(5.0).sleep();
-    }
-    while(!wpG.pushWP()){
-        ros::spinOnce();
-        ros::Duration(5.0).sleep();
-    }
-}
-
 void Master::modeCb(const ros::TimerEvent &e){
     static auto pubTimer = nh.createTimer(
                             ros::Duration(0.1),
@@ -101,10 +87,11 @@ void Master::modeCb(const ros::TimerEvent &e){
     //         modeRequest = ros::Time::now();
     //     }
     // }
-    
-    
+    // std::cout<<lp.getTargetPose()<<std::endl;
+    // std::cout<<obstacleFlag.getFlag()<<", "<<lp.obstacleDetected()<<std::endl;
     if(getCurMode() == MODE[MISSION]){
-        std::cout<<"MISSION"<<std::endl;
+        // std::cout<<"MISSION"<<std::endl;
+        // printf("%d, %f\n", obstacleFlag.getFlag(), getAlt());
         if(obstacleFlag.getFlag() && getAlt()>2.0){ // obstacle detected
             pubTimer.start();
             setMode(OFFBOARD);
@@ -115,13 +102,13 @@ void Master::modeCb(const ros::TimerEvent &e){
         pubTimer.stop();
 
         if(getCurMode() == MODE[OFFBOARD]){//avoidance
-            std::cout<<"OFFBOARD"<<std::endl;
+            // std::cout<<"OFFBOARD"<<std::endl;
             if(!obstacleFlag.getFlag()){
                 setMode(lastMode);
             }
         }
         else if(getCurMode() == MODE[MAN]){
-            std::cout<<"MANUAL"<<std::endl;
+            // std::cout<<"MANUAL"<<std::endl;
             if(obstacleFlag.getFlag() && getAlt()>2.0){ // obstacle detected
                 pubTimer.start();
                 setMode(OFFBOARD);
@@ -129,7 +116,7 @@ void Master::modeCb(const ros::TimerEvent &e){
             }
         }
         else if(getCurMode() == MODE[FORCEDMAN]){
-            std::cout<<"FORCED MANUAL"<<std::endl;
+            // std::cout<<"FORCED MANUAL"<<std::endl;
             /*empty*/
         }
     }
@@ -142,7 +129,7 @@ void Master::modeCb(const ros::TimerEvent &e){
 
 
 void Master::spin(){
-    while(ros::ok() && !currentState.connected){
+    while(ros::ok() && !curState.connected){
         ros::spinOnce();
         ros::Duration(1.0).sleep();
     }
@@ -163,7 +150,8 @@ void Master::spin(){
 	
     spinner.start();
     
-    setTarget(47.4042079, 8.5757766);//waypoint set
+    waitTarget();
+    // setTarget(47.4042079, 8.5757766);//waypoint set
 
     initialArming();//offboard && arm
 
@@ -214,7 +202,42 @@ void Master::spin(){
 
 void Master::stateCb(const mavros_msgs::State::ConstPtr& msg)
 {
-    currentState = *msg;
+    curState = *msg;
+}
+void Master::poseCb(const geometry_msgs::PoseStampedConstPtr& msg){
+    curPose = *msg;
+}
+
+void Master::waitTarget(){
+    while(!wpG.cleanWP()){
+        ros::spinOnce();
+        ros::Duration(5.0).sleep();
+    }
+    while(!wpG.detectTarget()){
+        ros::spinOnce();
+        ros::Duration(10.0).sleep();
+    }
+    while(!wpG.pushWP()){
+        ros::spinOnce();
+        ros::Duration(5.0).sleep();
+    }
+}
+
+
+void Master::setTarget(double lat, double lon){
+    wpG.setTarget(lat, lon);
+    // while(!wpG.current2Home()){
+    //     ros::spinOnce();
+    //     ros::Duration(5.0).sleep();
+    // }
+    while(!wpG.cleanWP()){
+        ros::spinOnce();
+        ros::Duration(5.0).sleep();
+    }
+    while(!wpG.pushWP()){
+        ros::spinOnce();
+        ros::Duration(5.0).sleep();
+    }
 }
 
 void Master::initialArming(){

@@ -10,33 +10,33 @@ class DelayFlag
 {
 private:
     bool flag;
-    bool lastFlag;
-    ros::Time lastTime;
     ros::Duration dur;
 public:
     DelayFlag(bool flag = false, double dur = 5.0)
         : dur(dur)
         , flag(flag)
-        , lastFlag(flag)
     {
 
     }
     bool check(bool inputFlag)
     {
+        static ros::Time lastTime = ros::Time::now();
+        static bool tab = false;
         if(flag == false){
-            flag = inputFlag;
+            if(inputFlag == true)
+                flag = true;
         }
-        else{
-            if(lastFlag != inputFlag){
+        else{//flag==true
+            if(inputFlag == false && tab == false){
                 lastTime = ros::Time::now();
+                tab = true;
             }
-            else{
-                if(ros::Time::now() - lastTime > dur){
-                    flag = true;
-                }
+            if(inputFlag == true){
+                tab = false;
             }
+            if(inputFlag == false && ros::Time::now() - lastTime > dur)
+                flag = false;
         }
-        lastFlag = inputFlag;
         return flag;
     }
 

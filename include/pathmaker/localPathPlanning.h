@@ -4,7 +4,6 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/core.hpp>
-// #include <opencv2/imgproc/imgproc.hpp>
 #include <geometry_msgs/PoseStamped.h>
 #include "layers.h"
 
@@ -38,6 +37,7 @@ public:
      * @brief update check, pose
      **/
     inline geometry_msgs::PoseStamped& getTargetPose(){
+        // std::cout<<targetPose<<std::endl;
         return targetPose;
     }
 

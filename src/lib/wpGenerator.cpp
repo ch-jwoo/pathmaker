@@ -5,9 +5,10 @@
 #include <mavros_msgs/HomePosition.h>
 #include <mavros_msgs/CommandCode.h>
 #include <mavros_msgs/Waypoint.h>
+#include <mavros_msgs/WaypointList.h>
 #include "pathmaker/wpGenerator.h"
 
-#define EXALT 2
+#define EXALT 3
 namespace pm{
 
 WpGenerator::WpGenerator(ros::NodeHandle &node_handle)
@@ -133,6 +134,22 @@ bool WpGenerator::cleanWP()
         ROS_ERROR("Waypoint list couldn't been cleared");
     }
     return wp_clear_srv.response.success;
+}
+
+bool WpGenerator::detectTarget(){
+    mavros_msgs::WaypointListConstPtr cwp = ros::topic::waitForMessage<mavros_msgs::WaypointList>("/mavros/mission/waypoints");
+    mavros_msgs::WaypointList wp = *cwp;
+    std::cout<<wp.waypoints.size()<<std::endl;
+    if(wp.waypoints.size() == 1){
+        setTarget(wp.waypoints[0].x_lat, wp.waypoints[0].y_long);
+        printf("%f, %f\n", wp.waypoints[0].x_lat, wp.waypoints[0].y_long);
+        return true;
+    }
+    return false;
+}
+
+void WpGenerator::wpCb(const mavros_msgs::WaypointListConstPtr& msg){
+    cur_wp = *msg;
 }
 
 }

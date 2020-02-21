@@ -31,7 +31,7 @@ private:
 
     //subscribe, publish, service
     ros::Subscriber stateSub;
-    mavros_msgs::State currentState;
+    mavros_msgs::State curState;
     void stateCb(const mavros_msgs::State::ConstPtr& msg);
 
     ros::Subscriber poseSub;
@@ -63,10 +63,10 @@ private:
         return curPose.pose.position.z;
     }
     inline bool armCheck(){
-        return currentState.armed;
+        return curState.armed;
     }
     inline std::string getCurMode(){
-        return currentState.mode;
+        return curState.mode;
     }
     void setTarget(double lat, double lon);
 
@@ -79,7 +79,7 @@ private:
 
     void targetPosePubCb(const ros::TimerEvent &e);
 
-
+    void waitTarget();
     /**
      * set Mode offboard, set arm
      * 
