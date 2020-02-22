@@ -33,7 +33,7 @@ void Master::setMode(int eMode){
     targetMode.request.custom_mode = MODE[eMode];
     setModeClient.call(targetMode);
     // if( setModeClient.call(targetMode) && getCurMode() == MODE[eMode] ){
-    //     std::cout<<"Mode change : " << MODE[eMode] << std::endl;
+    std::cout<<"Mode change : " << MODE[eMode] << std::endl;
     // }
 }
 void Master::setMode(std::string mode){
@@ -64,7 +64,7 @@ void Master::modeCb(const ros::TimerEvent &e){
                                 posePub.publish(lp.getTargetPose());
                             },
                             false, 
-                            false);
+                            true);
     static ros::Time modeRequest = ros::Time::now();
     static ros::Time armRequest = ros::Time::now();
     static std::string lastMode = getCurMode();
@@ -88,18 +88,18 @@ void Master::modeCb(const ros::TimerEvent &e){
     //     }
     // }
     // std::cout<<lp.getTargetPose()<<std::endl;
-    // std::cout<<obstacleFlag.getFlag()<<", "<<lp.obstacleDetected()<<std::endl;
+    std::cout<<obstacleFlag.getFlag()<<", "<<lp.obstacleDetected()<<std::endl;
     if(getCurMode() == MODE[MISSION]){
         // std::cout<<"MISSION"<<std::endl;
         // printf("%d, %f\n", obstacleFlag.getFlag(), getAlt());
         if(obstacleFlag.getFlag() && getAlt()>2.0){ // obstacle detected
-            pubTimer.start();
+            // pubTimer.start();
             setMode(OFFBOARD);
             lastMode = getCurMode();
         }
     }
     else{
-        pubTimer.stop();
+        // pubTimer.stop();
 
         if(getCurMode() == MODE[OFFBOARD]){//avoidance
             // std::cout<<"OFFBOARD"<<std::endl;
