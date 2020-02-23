@@ -28,7 +28,6 @@ private:
     void imageCb(const sensor_msgs::ImageConstPtr& msg);
 
     void calcTargetPose();
-
 public:
     LocalPathPlanning(ros::NodeHandle &nh, geometry_msgs::PoseStamped &curPose);
     ~LocalPathPlanning() = default;
@@ -37,7 +36,6 @@ public:
      * @brief update check, pose
      **/
     inline geometry_msgs::PoseStamped& getTargetPose(){
-        // std::cout<<targetPose<<std::endl;
         return targetPose;
     }
 

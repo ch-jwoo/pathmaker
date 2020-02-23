@@ -8,10 +8,10 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
-#include <cstring>
-#include <std_msgs/Float64.h>
-
+#include <sensor_msgs/NavSatFix.h>
 #include "delayFlag.h"
+
+#define NUMOFMODE 4
 
 namespace pm{
 
@@ -21,12 +21,10 @@ namespace pm{
  **/
 class Master{
 private:
-    // static const std::string OFFBOARD;
-    // static const std::string MISSION;
-
     enum eMode{OFFBOARD, MISSION, MAN, FORCEDMAN};//unordered map 이용해서 구현하면 더 좋을 듯
-    std::string MODE[4] = {"OFFBOARD", "AUTO.MISSION", "POSCTL", "ALTCTL"};
-
+    std::string MODE[NUMOFMODE] = {"OFFBOARD", "AUTO.MISSION", "POSCTL", "ALTCTL"};
+    int findModeNum(std::string mode);
+    
     ros::NodeHandle nh;
 
     //subscribe, publish, service
@@ -38,27 +36,35 @@ private:
     geometry_msgs::PoseStamped curPose;//NED
     void poseCb(const geometry_msgs::PoseStampedConstPtr& msg);
 
+    ros::Subscriber global_pose_sub;
+    sensor_msgs::NavSatFix cur_global_pose;//global
+    void globalPoseCb(const sensor_msgs::NavSatFixConstPtr& msg);
+
     ros::Publisher posePub;
-
-    ros::ServiceClient armingClient;
-    mavros_msgs::CommandBool armCmd;
-
-    ros::ServiceClient setModeClient;
-    mavros_msgs::SetMode targetMode;
-
-    //for checking obstacle
-    DelayFlag obstacleFlag;
 
     //for obstacle avoidance
     LocalPathPlanning lp;
 
     //for mission
     WpGenerator wpG;
+
+    void waitTarget();
     
-    // inline bool obstacleCheck(){
-    //     /* logic */
-    //     return true;
-    // }
+    //set Mode offboard, set arm
+    void initialArming();
+
+    void modeCb(const ros::TimerEvent &e);
+    void setArm(bool arming);
+    void setMode(int eMode);
+
+    void targetPosePubCb(const ros::TimerEvent &e);
+public:
+    Master();
+    ~Master() {};
+
+    void spin();
+
+    
     inline double getAlt(){
         return curPose.pose.position.z;
     }
@@ -68,34 +74,8 @@ private:
     inline std::string getCurMode(){
         return curState.mode;
     }
-    void setTarget(double lat, double lon);
-
-    void setMode(int eMode);
-    void setMode(std::string mode);
-
-    void setArm(bool arming);
-
-    void modeCb(const ros::TimerEvent &e);
-
-    void targetPosePubCb(const ros::TimerEvent &e);
-
-    void waitTarget();
-    /**
-     * set Mode offboard, set arm
-     * 
-     **/
-    void initialArming();
-
-public:
-    Master();
-    ~Master() {};
-
-    void spin();
 };
 
-
-// const std::string Master::OFFBOARD = "OFFBOARD";
-// const std::string Master::MISSION = "AUTO.MISSION";
 
 }
 
