@@ -17,11 +17,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_srvs
   cv_bridge
   image_transport
-  pcl_conversions
-  pcl_ros
 )
 
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 #find_package(catkin REQUIRED)
@@ -57,12 +55,7 @@ find_package(OpenCV 3 REQUIRED)
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  key.msg
-)
-
+## Generate messages in the 'msg' fold
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES

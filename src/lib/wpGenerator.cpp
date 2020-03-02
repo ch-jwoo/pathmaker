@@ -21,11 +21,8 @@ void WpGenerator::calSubWP()
 {
     double cur_lat = cur_global_pose.latitude;
     double cur_lon = cur_global_pose.longitude;
-    double lat_diff = target_lat - cur_lat;
-    double lon_diff = target_lon - cur_lon;
+
     addWP(cur_lat, cur_lon, EXALT);
-    addWP(cur_lat + lat_diff/3.0, cur_lon + lon_diff/3.0, EXALT);
-    addWP(cur_lat + lat_diff*2.0/3.0, cur_lon + lon_diff*2.0/3.0, EXALT);
     addLand(target_lat, target_lon, 3);
 }
 
