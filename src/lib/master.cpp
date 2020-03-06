@@ -22,10 +22,11 @@ Master::Master()
                 ("mavros/local_position/pose", ros::Duration(5.0))){
         ROS_ERROR("There is no \"mavros/local_position/pose\" message");
     }
-    while(!ros::topic::waitForMessage<sensor_msgs::NavSatFix>
-                ("mavros/global_position/global", ros::Duration(5.0))){
-        ROS_ERROR("There is no \"mavros/global_position/global\" message");
-    }
+    // while(!ros::topic::waitForMessage<sensor_msgs::NavSatFix>
+    //             ("mavros/global_position/global", ros::Duration(5.0))){
+    //     ROS_ERROR("There is no \"mavros/global_position/global\" message");
+    // }
+
     stateSub = nh.subscribe<mavros_msgs::State>
         ("mavros/state", 1, &Master::stateCb, this);
     poseSub = nh.subscribe<geometry_msgs::PoseStamped>
@@ -97,8 +98,8 @@ void Master::spin(){
         ros::Duration(1.0).sleep();
     }
     ROS_INFO("Mavros connected");
-    waitTarget();
-    initialArming();//offboard && arm
+    // waitTarget();
+    // initialArming();//offboard && arm
     
     ros::AsyncSpinner spinner(4 /* threads */);
 

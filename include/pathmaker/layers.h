@@ -37,7 +37,7 @@ public:
     Layers();
     ~Layers() = default;
 
-    void update(const cv::Mat &img);
+    void update(cv::Mat &img);
 
     inline float getAzimuth(){
         return azimuth;

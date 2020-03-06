@@ -18,12 +18,16 @@ LocalPathPlanning::LocalPathPlanning(ros::NodeHandle &nh, geometry_msgs::PoseSta
                 ("/camera/depth/image_rect_raw", ros::Duration(5.0))){
         ROS_ERROR("There is no \"/camera/depth/image_rect_raw\" message");
     }
+
     image_sub_ = it_.subscribe("/camera/depth/image_rect_raw", 1,
         &LocalPathPlanning::imageCb, this);
+
+    // image_pub_ = it_.advertise("/image_from_lp", 1);
 }
 
 void LocalPathPlanning::imageCb(const sensor_msgs::ImageConstPtr& msg)
 {
+    // cv_bridge::CvImageConstPtr cv_ptr;
     cv_bridge::CvImageConstPtr cv_ptr;
     //send const msg
     try

@@ -1,3 +1,4 @@
+
 #include "pathmaker/layers.h"
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -9,15 +10,15 @@ namespace pm{
 
 Layers::Layers()
     : Kd(4.0f)
-    , Kh(1.0f)
-    , Ke(1.0f)
-    , ORIGIN_WIDTH(630)
+    , Kh(0.5f)
+    , Ke(0.1f)
+    , ORIGIN_WIDTH(840)
     , ORIGIN_HEIGHT(468)
     , LAYERS_WIDTH(15)
     , LAYERS_HEIGHT(9)
     , FOV_H(87.0)
     , FOV_V(58.0)
-    , THRESHOLD(5.0)
+    , THRESHOLD(2.0)
     , MAXDISTANCE(10.0)
 {
     bin = cv::Mat::zeros(LAYERS_HEIGHT,LAYERS_WIDTH,CV_8UC1);
@@ -25,10 +26,10 @@ Layers::Layers()
     cost = cv::Mat::zeros(LAYERS_HEIGHT,LAYERS_WIDTH,CV_32F);
 }
 
-void Layers::update(const cv::Mat &img){
+void Layers::update( cv::Mat &img){
     int width_cut = ORIGIN_WIDTH/LAYERS_WIDTH;
     int height_cut = ORIGIN_HEIGHT/LAYERS_HEIGHT;
-
+    //cv::Mat raw = cv::Mat::zeros(848,480,CV_32F);
     for(int k=0;k<LAYERS_HEIGHT;k++)
     {
         for(int l=0;l<LAYERS_WIDTH;l++)
@@ -36,21 +37,30 @@ void Layers::update(const cv::Mat &img){
             dist.at<float>(k,l) = 0; // initialize
             for(int i=0; i<height_cut; i++){
                 for(int j=0; j<width_cut; j++){
-                    dist.at<float>(k,l)+=img.at<float>(i+1+k*height_cut,j+4+l*width_cut);
+                    //				     raw.at<float>(i+1+k*height_cut,j+4+l*width_cut)=img.at<float>(i+1+k*height_cut,j+4+l*width_cut);
+		if(img.at<float>(i+1+k*height_cut,j+4+l*width_cut) >20000 || img.at<float>(i+1+k*height_cut,j+4+l*width_cut) < 200)
+		{
+		//img.at<float>(i+1+k*height_cut,j+4+l*width_cut)=20000;
+	 	  img.at<float>(i+1+k*height_cut,j+4+l*width_cut)=20000;
+		}
+
+                  dist.at<float>(k,l)+=img.at<float>(i+1+k*height_cut,j+4+l*width_cut);
                 }
             }
             //average
-            dist.at<float>(k,l) /= (width_cut*height_cut);
+            dist.at<float>(k,l) /= (width_cut*height_cut)*1000.0;
             if(dist.at<float>(k,l) < THRESHOLD){
                 bin.at<uint8_t>(k,l)=1;
             }
             else{
                 bin.at<uint8_t>(k,l)=0;
             }
-            dist.at<float>(k,l) = 10 - dist.at<float>(k,l);
+            dist.at<float>(k,l) = 10.0 - dist.at<float>(k,l);
         }
     }
-
+    //cv::Rect rect(424,240,10,10);
+    //std::cout<<"raw= \n" << img(rect)<<std::endl;
+    /*
     for(int k=0; k<9; k++)
     {
         for(int l=0; l<15; l++)
@@ -132,7 +142,7 @@ void Layers::update(const cv::Mat &img){
             }
         }
     }
-
+    */
     cv::Mat blurred_depth_cost;
     cv::GaussianBlur(dist,blurred_depth_cost,cv::Size(9,9),1.0);                      ///////////////@#$%@$#%@$#%        블러 추가부분
     // std::cout <<blurred_depth_cost <<std::endl;
@@ -148,7 +158,8 @@ void Layers::update(const cv::Mat &img){
 
     // std::cout<<"bin: \n"<<bin<<std::endl<<std::endl;
     // std::cout<<"cost: \n"<<cost<<std::endl<<std::endl;
-
+    std::cout <<~bin <<std::endl;
+     std::cout <<cost<<std::endl;
     cv::minMaxLoc(cost, &minVal, &maxVal, &minLoc, &maxLoc, ~bin);//얘가 문제
     // std::cout<<cost<<std::endl;
     // std::cout<<bin<<std::endl;
@@ -162,3 +173,4 @@ void Layers::update(const cv::Mat &img){
 }
 
 }
+
