@@ -69,21 +69,26 @@ void Master::modeCb(const ros::TimerEvent &e){
 
     posePub.publish(lp.getTargetPose());
     obstacleFlag.check(lp.obstacleDetected());
+    //ROS_INFO("%f", getAlt());
     if(getCurMode() == MODE[MISSION]){
-        if(obstacleFlag.getFlag() && getAlt()>2.0){ // obstacle detected
+        if(obstacleFlag.getFlag() && getAlt()>1.5){ // obstacle detected
             setMode(OFFBOARD);
             lastMode = getCurMode();
+            ROS_INFO("OFFBOARD");
         }
     }
     else if(getCurMode() == MODE[OFFBOARD]){//avoidance
         if(!obstacleFlag.getFlag()){
             setMode(findModeNum(lastMode));
+            ROS_INFO("ESCAPE");
         }
     }
     else if(getCurMode() == MODE[MAN]){
+            ROS_INFO("current mode : position");
         if(obstacleFlag.getFlag() && getAlt()>2.0){ // obstacle detected
             setMode(OFFBOARD);
             lastMode = getCurMode();
+            ROS_INFO("OFFBOARD");
         }
     }
     else if(getCurMode() == MODE[FORCEDMAN]){

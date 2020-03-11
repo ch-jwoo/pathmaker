@@ -11,7 +11,7 @@ namespace pm{
 Layers::Layers()
     : Kd(4.0f)
     , Kh(0.5f)
-    , Ke(0.1f)
+    , Ke(0.5f)
     , ORIGIN_WIDTH(840)
     , ORIGIN_HEIGHT(468)
     , LAYERS_WIDTH(15)
@@ -38,10 +38,10 @@ void Layers::update( cv::Mat &img){
             for(int i=0; i<height_cut; i++){
                 for(int j=0; j<width_cut; j++){
                     //				     raw.at<float>(i+1+k*height_cut,j+4+l*width_cut)=img.at<float>(i+1+k*height_cut,j+4+l*width_cut);
-		if(img.at<float>(i+1+k*height_cut,j+4+l*width_cut) >20000 || img.at<float>(i+1+k*height_cut,j+4+l*width_cut) < 200)
+		if(img.at<float>(i+1+k*height_cut,j+4+l*width_cut) >10000 || img.at<float>(i+1+k*height_cut,j+4+l*width_cut) < 200)
 		{
 		//img.at<float>(i+1+k*height_cut,j+4+l*width_cut)=20000;
-	 	  img.at<float>(i+1+k*height_cut,j+4+l*width_cut)=20000;
+	 	  img.at<float>(i+1+k*height_cut,j+4+l*width_cut)=10000;
 		}
 
                   dist.at<float>(k,l)+=img.at<float>(i+1+k*height_cut,j+4+l*width_cut);
@@ -158,8 +158,8 @@ void Layers::update( cv::Mat &img){
 
     // std::cout<<"bin: \n"<<bin<<std::endl<<std::endl;
     // std::cout<<"cost: \n"<<cost<<std::endl<<std::endl;
-    std::cout <<~bin <<std::endl;
-     std::cout <<cost<<std::endl;
+    //std::cout <<~bin <<std::endl;
+    //std::cout <<cost<<std::endl;
     cv::minMaxLoc(cost, &minVal, &maxVal, &minLoc, &maxLoc, ~bin);//얘가 문제
     // std::cout<<cost<<std::endl;
     // std::cout<<bin<<std::endl;

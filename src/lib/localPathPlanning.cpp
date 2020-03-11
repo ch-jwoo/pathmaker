@@ -22,23 +22,23 @@ LocalPathPlanning::LocalPathPlanning(ros::NodeHandle &nh, geometry_msgs::PoseSta
     image_sub_ = it_.subscribe("/camera/depth/image_rect_raw", 1,
         &LocalPathPlanning::imageCb, this);
 
-    // image_pub_ = it_.advertise("/image_from_lp", 1);
+    image_pub_ = it_.advertise("/image_from_lp", 1);
 }
 
 void LocalPathPlanning::imageCb(const sensor_msgs::ImageConstPtr& msg)
 {
     // cv_bridge::CvImageConstPtr cv_ptr;
-    cv_bridge::CvImageConstPtr cv_ptr;
+    cv_bridge::CvImagePtr cv_ptr;
     //send const msg
     try
     {
         if(msg->encoding == "32FC1"){
-            cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::TYPE_32FC1);
+            cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
             depthMap = cv_ptr->image.clone();
             
         }
         else if(msg->encoding == "16UC1"){
-            cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::TYPE_16UC1);
+            cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
             cv_ptr->image.convertTo(this->depthMap, CV_32FC1);
         }
         else
@@ -59,6 +59,10 @@ void LocalPathPlanning::imageCb(const sensor_msgs::ImageConstPtr& msg)
         else{
             obstacleDetect = true;
         }
+        
+        //for debug
+        depthMap.convertTo(cv_ptr->image, CV_16UC1);
+        image_pub_.publish(cv_ptr->toImageMsg());
     }
     catch (cv_bridge::Exception& e)
     {

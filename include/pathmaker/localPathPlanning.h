@@ -24,7 +24,7 @@ private:
     //convert image msg to cv::Mat
     image_transport::ImageTransport it_;
     image_transport::Subscriber image_sub_;
-    // image_transport::Publisher image_pub_;
+    image_transport::Publisher image_pub_;
     void imageCb(const sensor_msgs::ImageConstPtr& msg);
 
     void calcTargetPose();
