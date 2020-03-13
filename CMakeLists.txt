@@ -146,7 +146,6 @@ add_library(switch
   include/pathmaker/switch.h
 )
 
-
 add_library(master
   src/lib/layers.cpp
   src/lib/wpGenerator.cpp
@@ -182,6 +181,8 @@ target_link_libraries(master
 ##master
 add_executable(master_node 
   src/master_node.cpp
+  include/pathmaker/jetsonGPIO.h
+
 )
 add_dependencies(master_node 
   master

@@ -15,7 +15,7 @@ private:
 public:
     enum {CLOSED = 0, OPENED = 1};
 
-    Servo(int min = 120, int max = 720)
+    Servo(int min = 1000, int max = 2000)
         : servoMin(min)
         , servoMax(max)
     {
@@ -42,7 +42,7 @@ public:
 
     void open()
     {
-        pca9685->setPWM(0,0,map(95,0,180,servoMin, servoMax)) ;//close
+        pca9685->setPWM(0,0,map(90,0,180,servoMin, servoMax)) ;//close
         status = OPENED;
     }
 

@@ -1,7 +1,9 @@
 #ifndef __SWITCH_H
 #define __SWITCH_H
-
+extern "C"
+{
 #include "jetsonGPIO.h"
+}
 class Switch
 {
     jetsonGPIO pushButton;
