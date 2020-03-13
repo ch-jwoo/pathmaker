@@ -9,7 +9,10 @@
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <sensor_msgs/NavSatFix.h>
+
 #include "delayFlag.h"
+#include "servo.h"
+#include "switch.h"
 
 #define NUMOFMODE 4
 
@@ -48,12 +51,18 @@ private:
     //for mission
     WpGenerator wpG;
 
+    Servo servo;
+    
+    Switch swit;
+
     void waitTarget();
     
     //set Mode offboard, set arm
     void initialArming();
 
     void modeCb(const ros::TimerEvent &e);
+    void servoCb(const ros::TimerEvent &e);
+    void wpCb(const ros::TimerEvent &e);
     void setArm(bool arming);
     void setMode(int eMode);
 

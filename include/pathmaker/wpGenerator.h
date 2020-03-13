@@ -22,6 +22,8 @@ private:
     double target_lat;
     double target_lon;
 
+    int max_mission;
+
     //add waypoint
     void addWP(double lat, double lon, double alt);
 
@@ -47,6 +49,7 @@ public:
     //clear waypoint
     bool cleanWP();
 
+    bool isMissionComplete();
 };
 
 }

@@ -26,14 +26,12 @@ SOFTWARE.
 #define _JHPWMPCA9685_H
 
 #include <cstddef>
- #include <linux/i2c-dev.h>
-
-
 extern "C" {
-
 #include <i2c/smbus.h>
-
+#include <linux/i2c-dev.h>
+// #include <linux/i2c.h>
 }
+
 #include <sys/ioctl.h>
 #include <cstdlib>
 #include <cstdio>
@@ -74,7 +72,7 @@ public:
     int getError() ;
 
 };
-
+int map ( int x, int in_min, int in_max, int out_min, int out_max);
 
 // Register definitions from Table 7.3 NXP Semiconductors
 // Product Data Sheet, Rev. 4 - 16 April 2015

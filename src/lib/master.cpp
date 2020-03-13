@@ -1,11 +1,11 @@
-#include "pathmaker/master.h"
 #include <ros/ros.h>
-
 #include <mavros_msgs/State.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <std_msgs/Float64.h>
+
+#include "pathmaker/master.h"
 
 namespace pm{
 
@@ -71,11 +71,11 @@ void Master::modeCb(const ros::TimerEvent &e){
     obstacleFlag.check(lp.obstacleDetected());
     //ROS_INFO("%f", getAlt());
     if(getCurMode() == MODE[MISSION]){
-        if(obstacleFlag.getFlag() && getAlt()>1.5){ // obstacle detected
-            setMode(OFFBOARD);
-            lastMode = getCurMode();
-            ROS_INFO("OFFBOARD");
-        }
+        // if(obstacleFlag.getFlag() && getAlt()>2.0){ // obstacle detected
+        //     setMode(OFFBOARD);
+        //     lastMode = getCurMode();
+        //     ROS_INFO("OFFBOARD");
+        // }
     }
     else if(getCurMode() == MODE[OFFBOARD]){//avoidance
         if(!obstacleFlag.getFlag()){
@@ -96,6 +96,45 @@ void Master::modeCb(const ros::TimerEvent &e){
     }
 }
 
+void Master::servoCb(const ros::TimerEvent &e){
+    static int step = 0;
+    if( servo.getStatus() == Servo::OPENED){
+        if(step == 0 && swit.getSwitch() == Switch::ATTACH){
+            servo.close();
+            step = 1;
+        }
+        else if(step == 1){
+            for(int i=0; i<3; i++){/*check switch along 3 second*/
+                if(swit.getSwitch() == Switch::DETACH){
+                    servo.open();
+                    step = 0;
+                }
+                ros::Duration(1.0).sleep();
+            }
+            if(!step == 0){
+                step = 0;
+            }
+        }
+    }
+    else{//servo closed
+        if(wpG.isMissionComplete()){
+            servo.open();
+            ros::Duration(3.0).sleep();
+        }
+    }
+}
+
+void Master::wpCb(const ros::TimerEvent &e){
+    static int step = 0;
+    if(step == 0 && wpG.detectTarget()){
+        wpG.pushWP();
+        step = 1;
+    }
+    if(step == 1 && !armCheck()){
+        initialArming();
+        step = 0;
+    }
+}
 
 void Master::spin(){
     while(ros::ok() && !curState.connected){
@@ -103,15 +142,19 @@ void Master::spin(){
         ros::Duration(1.0).sleep();
     }
     ROS_INFO("Mavros connected");
-    // waitTarget();
-    // initialArming();//offboard && arm
     
     ros::AsyncSpinner spinner(4 /* threads */);
 
     auto modeCheckTimer = nh.createTimer(
             ros::Duration(0.1), &Master::modeCb, this);
-    spinner.start();
     
+    auto mission_check_timer = nh.createTimer(//spinning func
+            ros::Duration(5.0), &Master::wpCb, this);
+
+    auto servo_check_timer = nh.createTimer(
+            ros::Duration(0.5), &Master::servoCb, this);
+    spinner.start();
+
     ros::waitForShutdown();
 	ROS_INFO("Stopping path planning...");
 	spinner.stop();
@@ -138,7 +181,7 @@ void Master::initialArming(){
     ros::Rate rate(20.0);
 
     while(getCurMode() != MODE[MISSION] || !armCheck()){
-        posePub.publish(curPose);
+        // posePub.publish(curPose);
         if(step == 0){
             if(getCurMode() != MODE[OFFBOARD])
                 setMode(OFFBOARD);

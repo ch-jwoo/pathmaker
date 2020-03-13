@@ -6,24 +6,29 @@
 #include <mavros_msgs/CommandCode.h>
 #include <mavros_msgs/Waypoint.h>
 #include <mavros_msgs/WaypointList.h>
+#include <mavros_msgs/WaypointReached.h>
+#include <mavros_msgs/ExtendedState.h>
+
 #include "pathmaker/wpGenerator.h"
 
-#define EXALT 3
 namespace pm{
 
 WpGenerator::WpGenerator(ros::NodeHandle &node_handle, sensor_msgs::NavSatFix &cur_global_pose)
     : nh(node_handle)
     , cur_global_pose(cur_global_pose)
+    , max_mission(0)
 {
 }
 
 void WpGenerator::calSubWP()
 {
+    max_mission = 0;
     double cur_lat = cur_global_pose.latitude;
     double cur_lon = cur_global_pose.longitude;
 
-    addWP(cur_lat, cur_lon, EXALT);
-    addLand(target_lat, target_lon, 3);
+    double altitude = 10.0;
+    addWP(cur_lat, cur_lon, altitude);
+    addLand(target_lat, target_lon, altitude);
 }
 
 void WpGenerator::addWP(double lat, double lon, double alt)
@@ -52,6 +57,7 @@ void WpGenerator::addWP(double lat, double lon, double alt)
     wp_msg.y_long = lon;
     wp_msg.z_alt = alt;
     wp_push_data.request.waypoints.push_back(wp_msg);
+    max_mission++;
 }
 
 void WpGenerator::addLand(double lat, double lon, double alt)
@@ -79,6 +85,7 @@ void WpGenerator::addLand(double lat, double lon, double alt)
     wp_msg.y_long = lon;
     wp_msg.z_alt = alt;
     wp_push_data.request.waypoints.push_back(wp_msg);
+    max_mission++;
 }
 
 bool WpGenerator::pushWP()
@@ -130,8 +137,24 @@ bool WpGenerator::detectTarget(){
     return false;
 }
 
+bool WpGenerator::isMissionComplete(){
+    mavros_msgs::WaypointReachedConstPtr reachedWP = ros::topic::waitForMessage<mavros_msgs::WaypointReached>("/mavros/mission/reached", ros::Duration(1.0));
+    mavros_msgs::ExtendedStateConstPtr state = ros::topic::waitForMessage<mavros_msgs::ExtendedState>("/mavros/extended_state", ros::Duration(1.0));
+    if(reachedWP){
+        ROS_ERROR("There is no topic of /mavros/mission/reached");
+        return false;
+    }
+    if(state){
+        ROS_ERROR("There is no topic of /mavros/extended_state");
+        return false;
+    }
+    if(reachedWP->wp_seq == max_mission && state->landed_state == mavros_msgs::ExtendedState::LANDED_STATE_ON_GROUND){
+        return true;
+    }
+    return false;
 }
 
+}
 
 
 

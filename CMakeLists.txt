@@ -3,6 +3,7 @@ project(pathmaker)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
+add_compile_options(-O2)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -19,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
 )
 
-find_package(OpenCV 4 REQUIRED)
+find_package(OpenCV 3 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 #find_package(catkin REQUIRED)
@@ -131,6 +132,21 @@ include_directories(
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 
+add_library(servo
+  src/lib/JHPWMPCA9685.cpp
+  include/pathmaker/JHPWMPCA9685.h
+  include/pathmaker/servo.h
+)
+target_link_libraries(servo
+  i2c
+)
+add_library(switch
+  src/lib/jetsonGPIO.c
+  include/pathmaker/jetsonGPIO.h
+  include/pathmaker/switch.h
+)
+
+
 add_library(master
   src/lib/layers.cpp
   src/lib/wpGenerator.cpp
@@ -142,6 +158,12 @@ add_dependencies(master
   ${catkin_EXPORTED_TARGETS}
 )
 
+target_link_libraries(master
+  servo
+  switch
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide

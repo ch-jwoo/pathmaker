@@ -1,15 +1,55 @@
-/*
-extern "C" {
+#include <cmath>
+// #include <cstdio>
+// #include <cstdlib>
+// #include <cstring>
+// #include <ctime>
+// #include <linux/i2c.h>
+// #include <cstddef>
+// #include <i2c/smbus.h>
 
-    #include <linux/i2c.h>
+#include "pathmaker/JHPWMPCA9685.h"
 
-    #include <linux/i2c-dev.h>
+#define PWM  60
+// Calibrated for a Robot Geek RGS-13 Servo
+// Make sure these are appropriate for the servo being used!
 
-    #include <i2c/smbus.h>
+ int servoMin = 120 ;
+ int servoMax = 720 ;
 
-}*/
-#include <JHPWMPCA9685.h>
-#include <math.h>
+// int getkey() {
+//     int character;
+//     struct termios orig_term_attr;
+//     struct termios new_term_attr;
+
+//     /* set the terminal to raw mode */
+//     tcgetattr(fileno(stdin), &orig_term_attr);
+//     memcpy(&new_term_attr, &orig_term_attr, sizeof(struct termios));
+//     new_term_attr.c_lflag &= ~(ECHO|ICANON);
+//     new_term_attr.c_cc[VTIME] = 0;
+//     new_term_attr.c_cc[VMIN] = 0;
+//     tcsetattr(fileno(stdin), TCSANOW, &new_term_attr);
+
+//     /* read a character from the stdin stream without blocking */
+//     /*   returns EOF (-1) if no character is available */
+//     character = fgetc(stdin);
+
+//     /* restore the original terminal attributes */
+//     tcsetattr(fileno(stdin), TCSANOW, &orig_term_attr);
+
+//     return character;
+// }
+
+// Map an integer from one coordinate system to another
+// This is used to map the servo values to degrees
+// e.g. map(90,0,180,servoMin, servoMax)
+// Maps 90 degrees to the servo value
+
+int map ( int x, int in_min, int in_max, int out_min, int out_max) {
+    int toReturn =  (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min ;
+    // For debugging:
+     printf("MAPPED %d to: %d\n", x, toReturn);
+    return toReturn ;
+}
 
  PCA9685::PCA9685(int address) {
     kI2CBus = 1 ;           // Default I2C bus for Jetson TK1
