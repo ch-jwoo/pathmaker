@@ -18,11 +18,15 @@ WpGenerator::WpGenerator(ros::NodeHandle &node_handle, sensor_msgs::NavSatFix &c
     , cur_global_pose(cur_global_pose)
     , max_mission(0)
 {
+    reached_wp_sub = nh.subscribe<mavros_msgs::WaypointReached>
+        ("/mavros/mission/reached", 1, &WpGenerator::reachedWpCb, this);
+    extended_state_sub = nh.subscribe<mavros_msgs::ExtendedState>
+        ("/mavros/extended_state", 1, &WpGenerator::extendedStateCb, this);
 }
 
 void WpGenerator::calSubWP()
 {
-    max_mission = 0;
+    max_mission = -1;
     double cur_lat = cur_global_pose.latitude;
     double cur_lon = cur_global_pose.longitude;
 
@@ -138,17 +142,19 @@ bool WpGenerator::detectTarget(){
 }
 
 bool WpGenerator::isMissionComplete(){
-    mavros_msgs::WaypointReachedConstPtr reachedWP = ros::topic::waitForMessage<mavros_msgs::WaypointReached>("/mavros/mission/reached", ros::Duration(1.0));
-    mavros_msgs::ExtendedStateConstPtr state = ros::topic::waitForMessage<mavros_msgs::ExtendedState>("/mavros/extended_state", ros::Duration(1.0));
-    if(reachedWP){
-        ROS_ERROR("There is no topic of /mavros/mission/reached");
-        return false;
-    }
-    if(state){
-        ROS_ERROR("There is no topic of /mavros/extended_state");
-        return false;
-    }
-    if(reachedWP->wp_seq == max_mission && state->landed_state == mavros_msgs::ExtendedState::LANDED_STATE_ON_GROUND){
+    // mavros_msgs::WaypointReachedConstPtr reachedWP = ros::topic::waitForMessage<mavros_msgs::WaypointReached>("/mavros/mission/reached", ros::Duration(2.0));
+    // mavros_msgs::ExtendedStateConstPtr state = ros::topic::waitForMessage<mavros_msgs::ExtendedState>("/mavros/extended_state", ros::Duration(2.0));
+    // if(reachedWP){
+    //     ROS_ERROR("There is no topic of /mavros/mission/reached");
+    //     return false;
+    // }
+    // if(state){
+    //     ROS_ERROR("There is no topic of /mavros/extended_state");
+    //     return false;
+    // }
+    std::cout<<reached_wp.wp_seq<<std::endl;
+    std::cout<<extended_state.land  ed_state<<std::endl;
+    if(reached_wp.wp_seq == max_mission && extended_state.landed_state == mavros_msgs::ExtendedState::LANDED_STATE_ON_GROUND){
         return true;
     }
     return false;

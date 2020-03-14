@@ -23,6 +23,7 @@ public:
     unsigned int getSwitch(){
         unsigned int value;
         gpioGetValue(pushButton, &value);
+	    printf("switch : %d\n", value);
         return value;
     }
     enum {ATTACH = 0, DETACH = 1};

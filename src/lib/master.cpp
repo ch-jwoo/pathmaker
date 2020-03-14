@@ -4,6 +4,7 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <std_msgs/Float64.h>
+#include <ctime>
 
 #include "pathmaker/master.h"
 
@@ -99,27 +100,28 @@ void Master::modeCb(const ros::TimerEvent &e){
 void Master::servoCb(const ros::TimerEvent &e){
     static int step = 0;
     if( servo.getStatus() == Servo::OPENED){
-        if(step == 0 && swit.getSwitch() == Switch::ATTACH){
+        if(step == 0 && swit.getSwitch() == Switch::ATTACH){//ATTACH
             servo.close();
+            sleep(1);
             step = 1;
         }
-        else if(step == 1){
+        if(step == 1){
             for(int i=0; i<3; i++){/*check switch along 3 second*/
                 if(swit.getSwitch() == Switch::DETACH){
                     servo.open();
-                    step = 0;
+                    sleep(2);
+                    //step = 0;
                 }
-                ros::Duration(1.0).sleep();
+                // ros::Duration(1.0).sleep();
             }
-            if(!step == 0){
-                step = 0;
-            }
+            step = 0;
         }
     }
     else{//servo closed
         if(wpG.isMissionComplete()){
             servo.open();
-            ros::Duration(3.0).sleep();
+            sleep(3);
+            // ros::Duration(3.0).sleep();
         }
     }
 }

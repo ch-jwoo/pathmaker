@@ -8,6 +8,8 @@
 #include <mavros_msgs/WaypointList.h>
 // #include <mavros_msgs/HomePosition.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <mavros_msgs/WaypointReached.h>
+#include <mavros_msgs/ExtendedState.h>
 
 namespace pm{
 //make sub waypoint from destination GPS
@@ -17,6 +19,18 @@ private:
     sensor_msgs::NavSatFix &cur_global_pose;
 
     mavros_msgs::WaypointPush wp_push_data;
+
+    ros::Subscriber reached_wp_sub;
+    mavros_msgs::WaypointReached reached_wp;
+    void reachedWpCb(const mavros_msgs::WaypointReached::ConstPtr& msg){
+        reached_wp = *msg;
+    }
+
+    ros::Subscriber extended_state_sub;
+    mavros_msgs::ExtendedState extended_state;
+    void extendedStateCb(const mavros_msgs::ExtendedState::ConstPtr& msg){
+        extended_state = *msg;
+    }
 
     //target gps
     double target_lat;

@@ -163,7 +163,7 @@ void Layers::update( cv::Mat &img){
     cv::minMaxLoc(cost, &minVal, &maxVal, &minLoc, &maxLoc, ~bin);//얘가 문제
     // std::cout<<cost<<std::endl;
     // std::cout<<bin<<std::endl;
-    printf("minLoc : %d, %d\n", minLoc.x, minLoc.y);
+    //printf("minLoc : %d, %d\n", minLoc.x, minLoc.y);
     this->azimuth= ((minLoc.x-7)*(FOV_H/15.0f))*(M_PI/180.0);//*(M_PI/180.0);  //degree
     this->elevation= ((4-minLoc.y)*(FOV_V/9.0f))*(M_PI/180.0);
     
